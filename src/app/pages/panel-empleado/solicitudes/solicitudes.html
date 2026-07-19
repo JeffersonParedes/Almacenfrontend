@@ -1,0 +1,82 @@
+<div class="page-header">
+  <h2 class="page-title">Mis Solicitudes de Aprobación</h2>
+  <div class="page-subtitle">Monitorea el estado y las respuestas de tus sugerencias de creación, edición o eliminación de catálogo.</div>
+</div>
+
+<div class="card">
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button class="tab-btn" [class.active]="currentTab === 'PENDIENTE'" (click)="setTab('PENDIENTE')">
+      Pendientes de Aprobación
+    </button>
+    <button class="tab-btn" [class.active]="currentTab === 'HISTORIAL'" (click)="setTab('HISTORIAL')">
+      Historial de Resoluciones
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" 
+           class="search-input" 
+           [(ngModel)]="searchTerm" 
+           (ngModelChange)="onSearchChange()" 
+           placeholder="Filtrar solicitudes por observación, tipo o código...">
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha Solicitud</th>
+          <th>Tipo</th>
+          <th>Observación / Respuesta</th>
+          <th>Estado</th>
+          <th>Aprobador</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sol of pagedSolicitudes; track sol.id) {
+          <tr>
+            <td><code>#{{ sol.id }}</code></td>
+            <td>{{ sol.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span style="font-weight: 600; font-size: 0.85rem; color:#38bdf8;">
+                {{ sol.tipo }}
+              </span>
+            </td>
+            <td>
+              {{ sol.observacion }}
+              @if (sol.fechaRespuesta) {
+                <br><small style="color: #64748b;">Respondido el: {{ sol.fechaRespuesta | date:'dd/MM/yyyy HH:mm' }}</small>
+              }
+            </td>
+            <td>
+              <span class="badge" 
+                    [class.badge-approved]="sol.estado === 'APROBADO' || sol.estado === 'APROBADA'"
+                    [class.badge-pending]="sol.estado === 'PENDIENTE'"
+                    [class.badge-rejected]="sol.estado === 'RECHAZADO' || sol.estado === 'RECHAZADA'">
+                {{ sol.estado }}
+              </span>
+            </td>
+            <td>{{ sol.nombreAprobador || '-' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+              No se encontraron solicitudes en esta pestaña.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredSolicitudes.length }} solicitudes</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+      <button class="pagination-btn" [disabled]="endIndex >= filteredSolicitudes.length" (click)="nextPage()">Siguiente</button>
+    </div>
+  </div>
+</div>

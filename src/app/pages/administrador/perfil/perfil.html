@@ -1,0 +1,33 @@
+<div class="perfil-view">
+  <div class="view-header">
+    <h1>Mi Perfil</h1>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-avatar">{{ getInitials() }}</div>
+    <span class="profile-name">{{ payload?.sub || 'Administrador' }}</span>
+    <span class="profile-role">Super Administrador SaaS</span>
+
+    <div class="profile-details-list">
+      <div class="detail-row">
+        <span class="detail-label">ID de Usuario</span>
+        <span class="detail-value">#{{ payload?.usuarioId || 'N/A' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Nombre de Usuario</span>
+        <span class="detail-value">{{ payload?.sub }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Rol del Sistema</span>
+        <span class="detail-value">{{ payload?.rol }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Token Expira el</span>
+        <span class="detail-value">{{ getExpirationDate() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

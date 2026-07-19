@@ -1,0 +1,117 @@
+<div class="page-header">
+  <h2 class="page-title">Personal y Empleados</h2>
+  <div class="page-subtitle">Administra el personal operativo (Empleados) que registra movimientos en tus almacenes.</div>
+</div>
+
+<div class="grid-layout">
+  <!-- Formulario -->
+  <div class="card">
+    <h3 class="card-title">
+      {{ editMode ? 'Editar Empleado' : 'Registrar Empleado' }}
+    </h3>
+
+    <div class="form-group">
+      <label>Nombre Completo *</label>
+      <input type="text" [(ngModel)]="formUsuario.nombreCompleto" placeholder="Ej. Juan Pérez Ramos">
+    </div>
+
+    <div class="form-group">
+      <label>Correo Electrónico *</label>
+      <input type="email" [(ngModel)]="formUsuario.correo" placeholder="Ej. juan.perez@empresa.com">
+    </div>
+
+    <div class="form-group">
+      <label>Nombre de Usuario *</label>
+      <input type="text" [(ngModel)]="formUsuario.usuario" placeholder="Ej. jperez">
+    </div>
+
+    <div class="form-group">
+      <label>Contraseña {{ editMode ? '(Dejar vacío para mantener actual)' : '*' }}</label>
+      <input type="password" [(ngModel)]="formUsuario.contrasena" placeholder="Escriba la clave...">
+    </div>
+
+    <button class="btn-primary" (click)="guardar()">
+      {{ editMode ? 'Actualizar Empleado' : 'Crear Empleado' }}
+    </button>
+
+    @if (editMode) {
+      <button class="btn-secondary" (click)="cancelarEdicion()">
+        Cancelar
+      </button>
+    }
+  </div>
+
+  <!-- Listado -->
+  <div class="card">
+    <h3 class="card-title">Lista de Personal</h3>
+
+    <!-- Buscador -->
+    <div class="table-header-actions">
+      <div class="search-input-container">
+        <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L20.47,19.76L19.04,21.19L13.01,15.16C11.87,16 10.39,16.5 8.5,16.5A6.5,6.5 0 0,1 2,10A6.5,6.5 0 0,1 8.5,3.5H9.5M9.5,5.5H8.5A4.5,4.5 0 0,0 4,10A4.5,4.5 0 0,0 8.5,14.5H9.5A4.5,4.5 0 0,0 14,10A4.5,4.5 0 0,0 9.5,5.5Z"/></svg>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por nombre o usuario..." (input)="onSearchChange()">
+      </div>
+      <div>
+        <small style="color: #64748b;">Total: {{ filteredUsuarios.length }} operarios</small>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of pagedUsuarios; track user.id) {
+            <tr>
+              <td>{{ user.id }}</td>
+              <td><strong>{{ user.nombreCompleto }}</strong></td>
+              <td><code>{{ user.usuario }}</code></td>
+              <td>{{ user.correo }}</td>
+              <td>
+                <span class="badge" [class.badge-active]="user.activo" [class.badge-inactive]="!user.activo">
+                  {{ user.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-sm btn-edit" (click)="seleccionarParaEdicion(user)">
+                    Editar
+                  </button>
+                  <button class="btn-sm btn-toggle-status" (click)="toggleEstado(user)">
+                    {{ user.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">
+                No se encontraron empleados registrados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    @if (filteredUsuarios.length > pageSize) {
+      <div class="pagination-container">
+        <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredUsuarios.length }}</span>
+        <div class="pagination-buttons">
+          <button class="pagination-btn" (click)="prevPage()" [disabled]="currentPage === 1">Anterior</button>
+          <button class="pagination-btn" (click)="nextPage()" [disabled]="endIndex >= filteredUsuarios.length">Siguiente</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

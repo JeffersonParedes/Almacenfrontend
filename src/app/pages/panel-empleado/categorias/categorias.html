@@ -1,0 +1,125 @@
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Categorías de Productos</h2>
+    <div class="page-subtitle">Explora las categorías activas y solicita adiciones o modificaciones de clasificación.</div>
+  </div>
+  <button class="btn-primary" (click)="abrirModalSugerir()">
+    <svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V19Z"/></svg>
+    Sugerir Categoría
+  </button>
+</div>
+
+<div class="card">
+  <div class="search-bar">
+    <input type="text" 
+           class="search-input" 
+           [(ngModel)]="searchTerm" 
+           (ngModelChange)="onSearchChange()" 
+           placeholder="Buscar categorías por nombre o descripción...">
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Estado Aprobación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (cat of pagedCategorias; track cat.id) {
+          <tr>
+            <td><code>#{{ cat.id }}</code></td>
+            <td><strong>{{ cat.nombre }}</strong></td>
+            <td>{{ cat.descripcion || '-' }}</td>
+            <td>
+              <span class="badge" 
+                    [class.badge-approved]="cat.estadoAprobacion === 'APROBADO' || cat.estadoAprobacion === 'APROBADA'"
+                    [class.badge-pending]="cat.estadoAprobacion === 'PENDIENTE'"
+                    [class.badge-rejected]="cat.estadoAprobacion === 'RECHAZADO' || cat.estadoAprobacion === 'RECHAZADA'">
+                {{ cat.estadoAprobacion || 'APROBADA' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="btn-action-edit" (click)="abrirModalEditar(cat)">
+                Solicitar Modificación
+              </button>
+              <button class="btn-action-delete" (click)="solicitarEliminacion(cat)">
+                Solicitar Eliminación
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">
+              No se encontraron categorías.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredCategorias.length }} categorías</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+      <button class="pagination-btn" [disabled]="endIndex >= filteredCategorias.length" (click)="nextPage()">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sugerir Nueva Categoría -->
+@if (showSugerirModal) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">Sugerir Nueva Categoría</h3>
+      
+      <div class="form-group">
+        <label>Nombre de la Categoría *</label>
+        <input type="text" [(ngModel)]="formSugerencia.nombre" placeholder="Ej. Abarrotes, Limpieza, etc.">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea rows="3" [(ngModel)]="formSugerencia.descripcion" placeholder="Explique qué productos pertenecen a esta categoría..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModalSugerir()">Cancelar</button>
+        <button class="btn-primary" (click)="sugerirCategoria()">Enviar Sugerencia</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Solicitar Modificación de Categoría -->
+@if (showEditarModal) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">Solicitar Modificación de Categoría</h3>
+      <p style="font-size: 0.8rem; color: #f59e0b; margin-top: -1rem; margin-bottom: 1.5rem;">
+        Esta solicitud requerirá la validación final del Bodeguero.
+      </p>
+
+      <div class="form-group">
+        <label>Nombre de Categoría *</label>
+        <input type="text" [(ngModel)]="editProposal.nombre">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción / Razón del Cambio *</label>
+        <textarea rows="3" [(ngModel)]="editReason" placeholder="Indique los motivos de la modificación y los nuevos valores..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModalEditar()">Cancelar</button>
+        <button class="btn-primary" (click)="enviarModificacion()">Enviar Solicitud</button>
+      </div>
+    </div>
+  </div>
+}

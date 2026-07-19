@@ -1,0 +1,39 @@
+<div class="page-header">
+  <h2 class="page-title">Notificaciones de Alerta</h2>
+  <div class="page-subtitle">Revisa las advertencias automáticas generadas por stock mínimo e información sobre lotes de productos.</div>
+</div>
+
+<div class="card">
+  <h3 class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+    <span>Alertas de Almacén</span>
+    @if (unreadCount > 0) {
+      <span style="font-size: 0.8rem; font-weight: normal; color: #f87171;">Tenes {{ unreadCount }} alertas sin leer</span>
+    }
+  </h3>
+
+  <div class="notifications-list">
+    @for (notif of notifications; track notif.id) {
+      <div class="notif-item" [class.unread]="!notif.leido">
+        <div class="notif-left">
+          <span class="status-dot" [class.read]="notif.leido"></span>
+          <div class="notif-details">
+            <span class="notif-title">{{ notif.titulo }}</span>
+            <span class="notif-message">{{ notif.mensaje }}</span>
+            <span class="notif-time">{{ notif.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+        
+        @if (!notif.leido) {
+          <button class="btn-mark-read" (click)="marcarLeido(notif.id)">
+            Marcar como leída
+          </button>
+        }
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <svg style="width:48px;height:48px;color:#334155;margin-bottom:1rem;" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M11,7H13V13H11V7M11,15H13V17H11V15Z"/></svg>
+        <p>No tienes notificaciones pendientes.</p>
+      </div>
+    }
+  </div>
+</div>

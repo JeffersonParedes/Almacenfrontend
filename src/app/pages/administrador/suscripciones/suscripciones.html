@@ -1,0 +1,100 @@
+<div class="suscripciones-view">
+  <div class="view-header">
+    <h1>Suscripciones y Facturación</h1>
+    <button class="btn-renew" style="font-size: 0.9rem; padding: 0.6rem 1.2rem;" (click)="actualizarEstados()">
+      🔄 Forzar Verificación de Vencimientos
+    </button>
+  </div>
+
+  <div class="grid-layout">
+    <!-- Listado de Suscripciones -->
+    <div class="card">
+      <h3>📋 Historial General de Suscripciones</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Monto</th>
+              <th>Estado Pago</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sub of suscripciones; track sub.id) {
+              <tr>
+                <td><strong>{{ sub.razonSocialEmpresa }}</strong></td>
+                <td>{{ sub.fechaInicio }}</td>
+                <td>{{ sub.fechaFin }}</td>
+                <td>S/. {{ sub.montoPagado | number:'1.2-2' }}</td>
+                <td>
+                  <span class="badge" [class.badge-paid]="sub.estadoPago === 'PAGADO'"
+                        [class.badge-expired]="sub.estadoPago === 'VENCIDO'">
+                    {{ sub.estadoPago }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-renew" (click)="seleccionarParaRenovar(sub)">Renovar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">No hay suscripciones registradas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Formulario de Renovación -->
+    <div class="card">
+      <h3>💳 Registrar Renovación</h3>
+      @if (selectedSub) {
+        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Renovando suscripción de: <strong style="color: white;">{{ selectedSub.razonSocialEmpresa }}</strong>
+        </p>
+
+        <form (submit)="renovar()">
+          <div class="form-group">
+            <label>Fecha de Inicio *</label>
+            <input type="date" name="fechaInicio" [(ngModel)]="renovacionForm.fechaInicio" required>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de Fin *</label>
+            <input type="date" name="fechaFin" [(ngModel)]="renovacionForm.fechaFin" required>
+          </div>
+
+          <div class="form-group">
+            <label>Monto Pagado (S/.) *</label>
+            <input type="number" name="montoPagado" [(ngModel)]="renovacionForm.montoPagado" placeholder="0.00" required>
+          </div>
+
+          <div class="form-group">
+            <label>Método de Pago *</label>
+            <select name="metodoPago" [(ngModel)]="renovacionForm.metodoPago">
+              <option value="TRANSFERENCIA">TRANSFERENCIA BANCARIA</option>
+              <option value="EFECTIVO">EFECTIVO</option>
+              <option value="TARJETA">TARJETA DE CRÉDITO/DÉBITO</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            Confirmar Pago y Renovar
+          </button>
+          <button type="button" class="btn-renew" style="width: 100%; margin-top: 0.5rem; text-align: center;" (click)="cancelarRenovacion()">
+            Cancelar
+          </button>
+        </form>
+      } @else {
+        <div style="text-align: center; padding: 3rem; color: #475569;">
+          <span style="font-size: 2.5rem; display: block; margin-bottom: 1rem;">💳</span>
+          Seleccione una empresa de la lista para renovar su suscripción.
+        </div>
+      }
+    </div>
+  </div>
+</div>

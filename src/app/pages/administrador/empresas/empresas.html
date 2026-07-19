@@ -1,0 +1,189 @@
+<div class="empresas-view">
+  <div class="view-header">
+    <h1>Administración de Empresas</h1>
+  </div>
+
+  <div class="grid-layout">
+    <!-- Listado de Empresas -->
+    <div class="card">
+      <h3>🏢 Empresas Suscritas</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>RUC</th>
+              <th>Razón Social</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (empresa of empresas; track empresa.id) {
+              <tr>
+                <td><strong>{{ empresa.ruc }}</strong></td>
+                <td>{{ empresa.razonSocial }}</td>
+                <td>
+                  <span class="badge" [class.badge-active]="empresa.estado === 'ACTIVO'"
+                        [class.badge-suspended]="empresa.estado === 'SUSPENDIDO'"
+                        [class.badge-inactive]="empresa.estado === 'INACTIVO'">
+                    {{ empresa.estado }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <button class="btn-action btn-detail" (click)="verDetalle(empresa)">Detalle</button>
+                  @if (empresa.estado === 'ACTIVO') {
+                    <button class="btn-action btn-deactivate" (click)="suspender(empresa.id!)">Suspender</button>
+                  } @else {
+                    <button class="btn-action btn-activate" (click)="reactivar(empresa.id!)">Reactivar</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-state">No hay empresas registradas en el sistema.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Formulario de Registro Rápido SaaS -->
+    <div class="card">
+      <h3>✨ Registrar Nueva Empresa</h3>
+      <form (submit)="registrar()" class="saas-form">
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1rem;">1. Datos de Empresa</h4>
+        
+        <div class="form-group">
+          <label>RUC (11 dígitos) *</label>
+          <input type="text" name="ruc" [(ngModel)]="registroForm.empresa.ruc" placeholder="RUC" maxlength="11" required>
+        </div>
+
+        <div class="form-group">
+          <label>Razón Social *</label>
+          <input type="text" name="razonSocial" [(ngModel)]="registroForm.empresa.razonSocial" placeholder="Ferretería..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico *</label>
+          <input type="email" name="correoContacto" [(ngModel)]="registroForm.empresa.correoContacto" placeholder="contacto@empresa.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" name="telefonoContacto" [(ngModel)]="registroForm.empresa.telefonoContacto" placeholder="999888777">
+        </div>
+
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" name="direccionPrincipal" [(ngModel)]="registroForm.empresa.direccionPrincipal" placeholder="Av. Principal 123">
+        </div>
+
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">2. Cuenta Bodeguero Inicial</h4>
+
+        <div class="form-group">
+          <label>Usuario *</label>
+          <input type="text" name="usuarioBodeguero" [(ngModel)]="registroForm.usuarioBodeguero" placeholder="pepe_dueño" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña Temporal *</label>
+          <input type="password" name="contrasenaBodeguero" [(ngModel)]="registroForm.contrasenaBodeguero" placeholder="Min. 6 caracteres" required>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" name="nombreBodeguero" [(ngModel)]="registroForm.nombreBodeguero" placeholder="José Pérez" required>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Bodeguero *</label>
+          <input type="email" name="correoBodeguero" [(ngModel)]="registroForm.correoBodeguero" placeholder="pepe@empresa.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>DNI *</label>
+          <input type="text" name="dniBodeguero" [(ngModel)]="registroForm.dniBodeguero" placeholder="8 dígitos" maxlength="8" required>
+        </div>
+
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">3. Suscripción SaaS</h4>
+
+        <div class="form-group">
+          <label>Plan de Suscripción *</label>
+          <select name="planSuscripcion" [(ngModel)]="registroForm.planSuscripcion">
+            <option value="PLAN MENSUAL BÁSICO">PLAN MENSUAL BÁSICO</option>
+            <option value="PLAN SEMESTRAL PRO">PLAN SEMESTRAL PRO</option>
+            <option value="PLAN ANUAL PREMIUM">PLAN ANUAL PREMIUM</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Monto Cobrado (S/.) *</label>
+          <input type="number" name="montoPago" [(ngModel)]="registroForm.montoPago" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+          <label>Duración (Meses) *</label>
+          <input type="number" name="duracionMeses" [(ngModel)]="registroForm.duracionMeses" placeholder="1" required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">
+          Registrar e Inicializar SaaS
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle Empresa -->
+@if (selectedEmpresa) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🏢 Detalle de Empresa</h3>
+        <button class="close-btn" (click)="cerrarDetalle()">×</button>
+      </div>
+
+      <div class="details-grid">
+        <div class="details-item">
+          <span class="details-label">ID</span>
+          <span class="details-value">{{ selectedEmpresa.id }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Estado</span>
+          <span class="details-value">
+            <span class="badge" [class.badge-active]="selectedEmpresa.estado === 'ACTIVO'"
+                  [class.badge-suspended]="selectedEmpresa.estado === 'SUSPENDIDO'"
+                  [class.badge-inactive]="selectedEmpresa.estado === 'INACTIVO'">
+              {{ selectedEmpresa.estado }}
+            </span>
+          </span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Razón Social</span>
+          <span class="details-value">{{ selectedEmpresa.razonSocial }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">RUC</span>
+          <span class="details-value">{{ selectedEmpresa.ruc }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Dirección Principal</span>
+          <span class="details-value">{{ selectedEmpresa.direccionPrincipal || '-' }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Teléfono Contacto</span>
+          <span class="details-value">{{ selectedEmpresa.telefonoContacto || '-' }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Correo Contacto</span>
+          <span class="details-value">{{ selectedEmpresa.correoContacto || '-' }}</span>
+        </div>
+        <div class="details-item">
+          <span class="details-label">Fecha Suscripción</span>
+          <span class="details-value">{{ selectedEmpresa.fechaSuscripcion || '-' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

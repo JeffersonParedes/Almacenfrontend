@@ -1,0 +1,157 @@
+<div class="page-header">
+  <h2 class="page-title">Movimientos de Kardex</h2>
+  <div class="page-subtitle">Registra transacciones de entradas, salidas y traslados físicos de mercadería en tiempo real.</div>
+</div>
+
+<div class="kardex-layout">
+  <!-- Registro de Movimientos -->
+  <div class="card">
+    <h3 class="card-title">Registrar Transacción</h3>
+    
+    <div class="form-group">
+      <label>Tipo de Transacción *</label>
+      <select [(ngModel)]="formMovimiento.tipoMovimiento" (change)="onTipoMovimientoChange()">
+        <option value="ENTRADA">ENTRADA (Ingreso)</option>
+        <option value="SALIDA">SALIDA (Egreso)</option>
+        <option value="TRASLADO">TRASLADO (Entre Almacenes)</option>
+        <option value="AJUSTE">AJUSTE (Corrección Manual)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Producto *</label>
+      <select [(ngModel)]="formMovimiento.productoId" (change)="onProductoChange()">
+        <option [value]="undefined">Seleccione un producto...</option>
+        @for (prod of productos; track prod.id) {
+          <option [value]="prod.id">{{ prod.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Selección de Lote -->
+    @if (lotesDisponibles.length > 0) {
+      <div class="form-group">
+        <label>Lote asociado</label>
+        <select [(ngModel)]="formMovimiento.loteId">
+          <option [value]="undefined">Sin Lote específico</option>
+          @for (lote of lotesDisponibles; track lote.id) {
+            <option [value]="lote.id">{{ lote.numeroLote }} (Exp: {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }})</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="form-group">
+      <label>Almacén Origen/Principal *</label>
+      <select [(ngModel)]="formMovimiento.almacenId">
+        <option [value]="undefined">Seleccione un almacén...</option>
+        @for (alm of almacenes; track alm.id) {
+          <option [value]="alm.id">{{ alm.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Almacén Destino (Solo Traslados) -->
+    @if (formMovimiento.tipoMovimiento === 'TRASLADO') {
+      <div class="form-group">
+        <label>Almacén Destino *</label>
+        <select [(ngModel)]="formMovimiento.destinoAlmacenId">
+          <option [value]="undefined">Seleccione almacén de destino...</option>
+          @for (alm of almacenes; track alm.id) {
+            @if (alm.id !== Number(formMovimiento.almacenId)) {
+              <option [value]="alm.id">{{ alm.nombre }}</option>
+            }
+          }
+        </select>
+      </div>
+    }
+
+    <div class="form-group">
+      <label>Cantidad *</label>
+      <input type="number" [(ngModel)]="formMovimiento.cantidad" min="1" placeholder="Ej. 100">
+    </div>
+
+    <div class="form-group">
+      <label>Motivo / Observación</label>
+      <textarea rows="3" [(ngModel)]="formMovimiento.motivo" placeholder="Ej. Compra a proveedor, Inventario inicial, rotura..."></textarea>
+    </div>
+
+    <button class="btn-primary" (click)="registrarMovimiento()">
+      Registrar Transacción
+    </button>
+  </div>
+
+  <!-- Historial de Kardex -->
+  <div class="card">
+    <h3 class="card-title">Historial de Transacciones (Kardex)</h3>
+
+    <div class="search-bar">
+      <input type="text" 
+             class="search-input" 
+             [(ngModel)]="searchTerm" 
+             (ngModelChange)="onSearchChange()" 
+             placeholder="Filtrar por producto, lote, almacén o usuario...">
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Producto / Lote</th>
+            <th>Almacén</th>
+            <th>Cant.</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mov of pagedMovimientos; track mov.id) {
+            <tr>
+              <td>{{ mov.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <span class="badge" 
+                      [class.badge-in]="mov.tipoMovimiento === 'ENTRADA'"
+                      [class.badge-out]="mov.tipoMovimiento === 'SALIDA'"
+                      [class.badge-transfer]="mov.tipoMovimiento === 'TRASLADO'"
+                      [class.badge-adjust]="mov.tipoMovimiento === 'AJUSTE'">
+                  {{ mov.tipoMovimiento }}
+                </span>
+              </td>
+              <td>
+                <strong>{{ mov.producto.nombre }}</strong>
+                @if (mov.lote) {
+                  <br><small style="color:#94a3b8;">Lote: {{ mov.lote.numeroLote || '-' }}</small>
+                }
+              </td>
+              <td>
+                @if (mov.tipoMovimiento === 'TRASLADO') {
+                  {{ mov.almacen.nombre }} &rarr; {{ mov.destinoAlmacen?.nombre || 'Destino' }}
+                } @else {
+                  {{ mov.almacen.nombre }}
+                }
+              </td>
+              <td style="font-weight: 700;">{{ mov.cantidad }}</td>
+              <td><small style="color:#94a3b8;">{{ mov.nombreUsuario }}</small></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+                No se registraron movimientos en el Kardex.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination">
+      <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredMovimientos.length }} transacciones</span>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+        <button class="pagination-btn" [disabled]="endIndex >= filteredMovimientos.length" (click)="nextPage()">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>

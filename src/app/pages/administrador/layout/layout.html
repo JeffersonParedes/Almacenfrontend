@@ -1,0 +1,67 @@
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="brand-section">
+      <span class="brand-icon">📦</span>
+      <div>
+        <span class="brand-title">GestorAlmacén</span>
+        <span class="brand-subtitle">Consola SaaS</span>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/administrador/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/administrador/empresas" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏢</span>
+        <span>Empresas</span>
+      </a>
+
+      <a routerLink="/administrador/suscripciones" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">💳</span>
+        <span>Suscripciones</span>
+      </a>
+
+      <a routerLink="/administrador/notificaciones" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🔔</span>
+        <span>Notificaciones</span>
+      </a>
+
+      <a routerLink="/administrador/reportes" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span>Reportes PDF</span>
+      </a>
+
+      <a routerLink="/administrador/perfil" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span>Mi Perfil</span>
+      </a>
+    </nav>
+
+    <div class="logout-section">
+      <button class="logout-btn" (click)="logout()">
+        <span>Cerrar Sesión</span>
+        <span>🚪</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-workspace">
+    <header class="workspace-header">
+      <div class="page-title-section">
+        <h2>Panel de Administración SaaS</h2>
+      </div>
+
+      <div class="user-profile-badge">
+        <div class="user-avatar">{{ getInitials() }}</div>
+        <span class="user-name">{{ username }}</span>
+      </div>
+    </header>
+
+    <div class="workspace-body">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

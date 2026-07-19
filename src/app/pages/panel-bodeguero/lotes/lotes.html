@@ -1,0 +1,129 @@
+<div class="page-header">
+  <h2 class="page-title">Control de Lotes y Vencimientos</h2>
+  <div class="page-subtitle">Registra lotes de mercadería y supervisa las alertas de vencimiento mediante semáforos de color.</div>
+</div>
+
+<div class="grid-layout">
+  <!-- Formulario de Registro -->
+  <div class="card">
+    <h3 class="card-title">Registrar Nuevo Lote</h3>
+
+    <div class="form-group">
+      <label>Producto *</label>
+      <select [(ngModel)]="formLote.productoId">
+        <option [value]="undefined" disabled selected>Seleccione un producto...</option>
+        @for (prod of productosAprobados; track prod.id) {
+          <option [value]="prod.id">{{ prod.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Número de Lote / Batch *</label>
+      <input type="text" [(ngModel)]="formLote.numeroLote" placeholder="Ej. LOTE-2026-A1">
+    </div>
+
+    <div class="form-group">
+      <label>Fecha de Fabricación</label>
+      <input type="date" [(ngModel)]="formLote.fechaFabricacion">
+    </div>
+
+    <div class="form-group">
+      <label>Fecha de Vencimiento</label>
+      <input type="date" [(ngModel)]="formLote.fechaVencimiento">
+    </div>
+
+    <div class="form-group">
+      <label>Cantidad Inicial *</label>
+      <input type="number" min="0" [(ngModel)]="formLote.cantidadActual" placeholder="0">
+    </div>
+
+    <div class="form-group">
+      <label>Costo de Compra Unitario (S/.) *</label>
+      <input type="number" step="0.01" min="0" [(ngModel)]="formLote.costoCompra" placeholder="0.00">
+    </div>
+
+    <button class="btn-primary" (click)="registrarLote()">
+      Registrar Lote
+    </button>
+  </div>
+
+  <!-- Listado y Consultas -->
+  <div class="card">
+    <h3 class="card-title">Listado de Lotes</h3>
+
+    <!-- Filtros de Consulta -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label style="margin: 0; white-space: nowrap;">Modo Consulta:</label>
+        <select [(ngModel)]="queryMode" (change)="onQueryModeChange()" style="width: auto; padding: 0.5rem 1rem;">
+          <option value="PRODUCTO">Filtrar por Producto</option>
+          <option value="VENCIMIENTO_30">Vence en 30 días</option>
+          <option value="VENCIMIENTO_60">Vence en 60 días</option>
+          <option value="VENCIMIENTO_90">Vence en 90 días</option>
+        </select>
+
+        @if (queryMode === 'PRODUCTO') {
+          <select [(ngModel)]="selectedProductoId" (change)="cargarLotesPorProducto()" style="width: auto; padding: 0.5rem 1rem;">
+            <option [value]="undefined" disabled selected>Seleccione un producto...</option>
+            @for (prod of productosAprobados; track prod.id) {
+              <option [value]="prod.id">{{ prod.nombre }}</option>
+            }
+          </select>
+        }
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Lote / Batch</th>
+            <th>Producto</th>
+            <th>Fabricación</th>
+            <th>Vencimiento</th>
+            <th>Cantidad Actual</th>
+            <th>Costo Unit.</th>
+            <th>Semáforo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (lote of lotes; track lote.id) {
+            <tr>
+              <td><strong>{{ lote.numeroLote }}</strong></td>
+              <td>{{ lote.nombreProducto || 'N/A' }}</td>
+              <td>{{ lote.fechaFabricacion ? (lote.fechaFabricacion | date:'dd/MM/yyyy') : 'N/A' }}</td>
+              <td>
+                <span [class.text-red]="esCritico(lote.fechaVencimiento)" 
+                      [class.text-yellow]="esAdvertencia(lote.fechaVencimiento)">
+                  {{ lote.fechaVencimiento ? (lote.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin fecha' }}
+                </span>
+              </td>
+              <td>{{ lote.cantidadActual }}</td>
+              <td>S/. {{ lote.costoCompra | number:'1.2-2' }}</td>
+              <td>
+                <div class="traffic-light">
+                  <span class="dot" [ngClass]="getSemaforoClase(lote.fechaVencimiento)"></span>
+                  <span [ngClass]="getSemaforoTextoClase(lote.fechaVencimiento)">
+                    {{ getSemaforoLeyenda(lote.fechaVencimiento) }}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                @if (queryMode === 'PRODUCTO' && !selectedProductoId) {
+                  Seleccione un producto para cargar sus lotes.
+                } @else {
+                  No se encontraron lotes con los criterios de consulta indicados.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="page-header">
+  <h2 class="page-title">Inventario Físico</h2>
+  <div class="page-subtitle">Monitorea las cantidades en stock de los productos almacenados en cada establecimiento.</div>
+</div>
+
+<div class="card">
+  <div class="filters-grid">
+    <div class="form-group">
+      <label>Buscar Producto</label>
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()" placeholder="Escriba nombre o código...">
+    </div>
+
+    <div class="form-group">
+      <label>Almacén</label>
+      <select [(ngModel)]="selectedAlmacenId" (change)="onFilterChange()">
+        <option [value]="undefined">Todos los Almacenes</option>
+        @for (alm of almacenes; track alm.id) {
+          <option [value]="alm.id">{{ alm.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+      <input type="checkbox" id="critico-check" [(ngModel)]="onlyCritical" (change)="onFilterChange()" style="width: auto;">
+      <label for="critico-check" style="margin-bottom: 0; cursor: pointer;">Solo Stock Crítico</label>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Almacén</th>
+          <th>Stock Actual</th>
+          <th>Stock Mínimo</th>
+          <th>Última Modificación</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of pagedInventario; track item.id) {
+          <tr>
+            <td><code>{{ item.producto.codigoBarras || '-' }}</code></td>
+            <td><strong>{{ item.producto.nombre }}</strong></td>
+            <td>{{ item.almacen.nombre }}</td>
+            <td>
+              <span class="stock-badge" [class.critical]="item.stockActual <= item.stockMinimo" [class.ok]="item.stockActual > item.stockMinimo">
+                {{ item.stockActual }}
+              </span>
+            </td>
+            <td>{{ item.stockMinimo }}</td>
+            <td>{{ item.ultimaActualizacion | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+              No se encontraron registros de inventario que coincidan con la búsqueda.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredInventario.length }} registros</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+      <button class="pagination-btn" [disabled]="endIndex >= filteredInventario.length" (click)="nextPage()">Siguiente</button>
+    </div>
+  </div>
+</div>

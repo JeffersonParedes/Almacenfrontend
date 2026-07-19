@@ -1,0 +1,76 @@
+<div class="dashboard-view">
+  <div class="welcome-banner">
+    <h1>Bienvenido de vuelta, {{ username }}</h1>
+    <p>Aquí está el estado general de tu plataforma SaaS al día de hoy.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-title">Empresas Activas</span>
+        <span class="stat-value">{{ stats.empresasActivas }}</span>
+      </div>
+      <div class="stat-icon icon-blue">🏢</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-title">Empresas Suspendidas</span>
+        <span class="stat-value">{{ stats.empresasSuspendidas }}</span>
+      </div>
+      <div class="stat-icon icon-orange">🚫</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-title">Suscripciones por Vencer</span>
+        <span class="stat-value">{{ stats.suscripcionesPorVencer }}</span>
+      </div>
+      <div class="stat-icon icon-purple">⚠️</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-title">Crecimiento (Mes)</span>
+        <span class="stat-value">+{{ stats.nuevasEmpresasMes }}</span>
+      </div>
+      <div class="stat-icon icon-green">📈</div>
+    </div>
+  </div>
+
+  <div class="activity-grid">
+    <div class="dashboard-card">
+      <h3>Notificaciones Recientes de la Plataforma</h3>
+      <div class="notification-list">
+        @for (notif of notifications; track notif.id) {
+          <div class="notification-item">
+            <span class="notification-badge">🔔</span>
+            <div class="notification-content">
+              <span class="notification-title">{{ notif.titulo }}</span>
+              <span class="notification-msg">{{ notif.mensaje }}</span>
+              <span class="notification-date">{{ notif.fechaCreacion }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">No hay alertas ni notificaciones registradas.</div>
+        }
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <h3>Resumen Rápido de Gestión</h3>
+      <p style="color: #cbd5e1; line-height: 1.6; font-size: 0.95rem;">
+        Como super-administrador, cuentas con la capacidad total de monitorear todos los inquilinos (Tenants) en la nube.
+      </p>
+      <p style="color: #94a3b8; line-height: 1.6; font-size: 0.9rem; margin-top: 1rem;">
+        Utiliza el panel lateral para:
+      </p>
+      <ul style="color: #94a3b8; font-size: 0.9rem; line-height: 2; margin-top: 0.5rem; padding-left: 1.5rem;">
+        <li>Crear nuevas cuentas de empresas y vender suscripciones.</li>
+        <li>Monitorear estados de cobro y suspender cuentas deudoras.</li>
+        <li>Generar comprobantes de pago globales en PDF.</li>
+        <li>Emitir anuncios masivos o notificaciones de mantenimiento.</li>
+      </ul>
+    </div>
+  </div>
+</div>

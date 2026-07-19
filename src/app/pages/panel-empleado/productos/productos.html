@@ -1,0 +1,152 @@
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Catálogo de Productos</h2>
+    <div class="page-subtitle">Visualiza los productos del sistema y envía solicitudes de creación, modificación o eliminación.</div>
+  </div>
+  <button class="btn-primary" (click)="abrirModalSugerir()">
+    <svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V19Z"/></svg>
+    Sugerir Producto
+  </button>
+</div>
+
+<div class="card">
+  <div class="search-bar">
+    <input type="text" 
+           class="search-input" 
+           [(ngModel)]="searchTerm" 
+           (ngModelChange)="onSearchChange()" 
+           placeholder="Buscar productos por nombre, código de barras o categoría...">
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (prod of pagedProductos; track prod.id) {
+          <tr>
+            <td><code>{{ prod.codigoBarras || '-' }}</code></td>
+            <td>{{ prod.nombre }}</td>
+            <td>{{ prod.categoria?.nombre || '-' }}</td>
+            <td>S/. {{ prod.precio | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" 
+                    [class.badge-approved]="prod.estadoAprobacion === 'APROBADO' || prod.estadoAprobacion === 'APROBADA'"
+                    [class.badge-pending]="prod.estadoAprobacion === 'PENDIENTE'"
+                    [class.badge-rejected]="prod.estadoAprobacion === 'RECHAZADO' || prod.estadoAprobacion === 'RECHAZADA'">
+                {{ prod.estadoAprobacion || 'APROBADO' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="btn-action-edit" (click)="abrirModalEditar(prod)">
+                Solicitar Modificación
+              </button>
+              <button class="btn-action-delete" (click)="solicitarEliminacion(prod)">
+                Solicitar Eliminación
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+              No se encontraron productos en el catálogo.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination">
+    <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredProductos.length }} productos</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+      <button class="pagination-btn" [disabled]="endIndex >= filteredProductos.length" (click)="nextPage()">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sugerir Nuevo Producto -->
+@if (showSugerirModal) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">Sugerir Nuevo Producto</h3>
+      
+      <div class="form-group">
+        <label>Nombre del Producto *</label>
+        <input type="text" [(ngModel)]="formSugerencia.nombre" placeholder="Ej. Arroz Costeño 1kg">
+      </div>
+
+      <div class="form-group">
+        <label>Código de Barras</label>
+        <input type="text" [(ngModel)]="formSugerencia.codigoBarras" placeholder="Código de barras EAN-13">
+      </div>
+
+      <div class="form-group">
+        <label>Categoría *</label>
+        <select [(ngModel)]="formSugerencia.categoriaId">
+          <option [value]="undefined">Seleccione una categoría...</option>
+          @for (cat of categorias; track cat.id) {
+            <option [value]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Precio Unitario (S/.) *</label>
+        <input type="number" [(ngModel)]="formSugerencia.precio" placeholder="0.00" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea rows="3" [(ngModel)]="formSugerencia.descripcion" placeholder="Detalle adicional..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModalSugerir()">Cancelar</button>
+        <button class="btn-primary" (click)="sugerirProducto()">Enviar Sugerencia</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Solicitar Modificación de Producto -->
+@if (showEditarModal) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">Solicitar Modificación de Producto</h3>
+      <p style="font-size: 0.8rem; color: #f59e0b; margin-top: -1rem; margin-bottom: 1.5rem;">
+        Los cambios se enviarán como una solicitud al Bodeguero para su aprobación.
+      </p>
+
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" [(ngModel)]="editProposal.nombre">
+      </div>
+
+      <div class="form-group">
+        <label>Precio Unitario (S/.) *</label>
+        <input type="number" [(ngModel)]="editProposal.precio" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label>Descripción / Observación del Cambio *</label>
+        <textarea rows="3" [(ngModel)]="editReason" placeholder="Ej. Cambio de precio por inflación o variación de marca..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModalEditar()">Cancelar</button>
+        <button class="btn-primary" (click)="enviarModificacion()">Enviar Solicitud</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,83 @@
+<div class="notificaciones-view">
+  <div class="view-header">
+    <h1>Notificaciones de Sistema</h1>
+  </div>
+
+  <div class="grid-layout">
+    <!-- Listado de Notificaciones -->
+    <div class="card">
+      <h3>🔔 Centro de Mensajes</h3>
+      <div class="notification-list">
+        @for (notif of notifications; track notif.id) {
+          <div class="notification-item" [class.unread]="!notif.leido">
+            <div class="notification-badge">
+              @if (notif.tipo === 'SUSCRIPCION') { 💳 }
+              @else if (notif.tipo === 'STOCK') { ⚠️ }
+              @else if (notif.tipo === 'VENCIMIENTO') { 📅 }
+              @else { 📢 }
+            </div>
+            
+            <div class="notification-details">
+              <span class="notification-title">{{ notif.titulo }}</span>
+              <span class="notification-msg">{{ notif.mensaje }}</span>
+              <span class="notification-meta">
+                Tipo: {{ notif.tipo }} | Creado: {{ notif.fechaCreacion }}
+              </span>
+            </div>
+
+            @if (!notif.leido) {
+              <button class="btn-read" (click)="marcarLeida(notif.id)">
+                Marcar como Leída
+              </button>
+            }
+          </div>
+        } @empty {
+          <div class="empty-state">No tienes notificaciones registradas.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Formulario de Emisión Global -->
+    <div class="card">
+      <h3>📢 Emitir Notificación Global</h3>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.4;">
+        Envía un aviso administrativo a los paneles de todos los Bodegueros o a una empresa específica.
+      </p>
+
+      <form (submit)="emitirAviso()">
+        <div class="form-group">
+          <label>Empresa Destino</label>
+          <select name="empresaId" [(ngModel)]="broadcastForm.empresaId">
+            <option [value]="null">TODAS LAS EMPRESAS (Broadcast)</option>
+            @for (emp of empresas; track emp.id) {
+              <option [value]="emp.id">{{ emp.razonSocial }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Alerta *</label>
+          <select name="tipo" [(ngModel)]="broadcastForm.tipo">
+            <option value="SUSCRIPCION">SUSCRIPCION (Cobros y Vencimientos)</option>
+            <option value="APROBACION">APROBACION (Solicitudes)</option>
+            <option value="SISTEMA">SISTEMA (Avisos de Mantenimiento)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Título de Notificación *</label>
+          <input type="text" name="titulo" [(ngModel)]="broadcastForm.titulo" placeholder="Ej. Corte de Mantenimiento" required>
+        </div>
+
+        <div class="form-group">
+          <label>Mensaje / Cuerpo del Aviso *</label>
+          <textarea name="mensaje" [(ngModel)]="broadcastForm.mensaje" placeholder="Describe los detalles de la alerta..." rows="5" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          Enviar Notificación
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

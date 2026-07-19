@@ -1,0 +1,158 @@
+<div class="page-header">
+  <h2 class="page-title">Catálogo de Productos</h2>
+  <div class="page-subtitle">Administra los artículos ofrecidos, asigna categorías y supervisa las aprobaciones del catálogo.</div>
+</div>
+
+<div class="grid-layout">
+  <!-- Formulario -->
+  <div class="card">
+    <h3 class="card-title">
+      {{ editMode ? 'Editar Producto' : 'Registrar Producto' }}
+    </h3>
+
+    <div class="form-group">
+      <label>Nombre del Producto *</label>
+      <input type="text" [(ngModel)]="formProducto.nombre" placeholder="Ej. Coca Cola 1.5L, Arroz Costeño 1kg">
+    </div>
+
+    <div class="form-group">
+      <label>Código de Barras</label>
+      <input type="text" [(ngModel)]="formProducto.codigoBarras" placeholder="Escriba o escanee el código...">
+    </div>
+
+    <div class="form-group">
+      <label>Precio de Venta (S/.) *</label>
+      <input type="number" step="0.01" min="0" [(ngModel)]="formProducto.precio" placeholder="0.00">
+    </div>
+
+    <div class="form-group">
+      <label>Categoría *</label>
+      <select [(ngModel)]="formProducto.categoriaId">
+        <option [value]="undefined" disabled selected>Seleccione una categoría...</option>
+        @for (cat of categoriasActivas; track cat.id) {
+          <option [value]="cat.id">{{ cat.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Descripción</label>
+      <textarea [(ngModel)]="formProducto.descripcion" placeholder="Ej. Bebida gasificada..." rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>URL de Imagen</label>
+      <input type="text" [(ngModel)]="formProducto.imagenUrl" placeholder="Ej. http://...">
+    </div>
+
+    <button class="btn-primary" (click)="guardar()">
+      {{ editMode ? 'Actualizar Producto' : 'Crear Producto' }}
+    </button>
+
+    @if (editMode) {
+      <button class="btn-secondary" (click)="cancelarEdicion()">
+        Cancelar
+      </button>
+    }
+  </div>
+
+  <!-- Tabla de Listado -->
+  <div class="card">
+    <h3 class="card-title">Catálogo</h3>
+
+    <!-- Filtros y Buscador -->
+    <div class="table-header-actions">
+      <div class="search-input-container">
+        <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L20.47,19.76L19.04,21.19L13.01,15.16C11.87,16 10.39,16.5 8.5,16.5A6.5,6.5 0 0,1 2,10A6.5,6.5 0 0,1 8.5,3.5H9.5M9.5,5.5H8.5A4.5,4.5 0 0,0 4,10A4.5,4.5 0 0,0 8.5,14.5H9.5A4.5,4.5 0 0,0 14,10A4.5,4.5 0 0,0 9.5,5.5Z"/></svg>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por nombre o código..." (input)="onSearchChange()">
+      </div>
+
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <select [(ngModel)]="selectedCategoryFilter" (change)="onSearchChange()" style="width: auto; padding: 0.5rem 1rem;">
+          <option value="">Todas las categorías</option>
+          @for (cat of categoriasActivas; track cat.id) {
+            <option [value]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+
+        <small style="color: #64748b; white-space: nowrap;">Total: {{ filteredProductos.length }} items</small>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Categoría</th>
+            <th>Aprobación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (prod of pagedProductos; track prod.id) {
+            <tr>
+              <td>
+                <img [src]="prod.imagenUrl || 'assets/placeholder.png'" 
+                     onerror="this.src='https://placehold.co/40x40?text=Prod'"
+                     style="width:40px; height:40px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.05);">
+              </td>
+              <td><small style="color: #94a3b8;">{{ prod.codigoBarras || 'N/A' }}</small></td>
+              <td><strong>{{ prod.nombre }}</strong></td>
+              <td>S/. {{ prod.precio | number:'1.2-2' }}</td>
+              <td>{{ prod.categoria?.nombre || 'Sin categoría' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-approved': prod.estadoAprobacion === 'APROBADO' || prod.estadoAprobacion === 'APROBADA',
+                  'badge-pending': prod.estadoAprobacion === 'PENDIENTE',
+                  'badge-rejected': prod.estadoAprobacion === 'RECHAZADO' || prod.estadoAprobacion === 'RECHAZADA'
+                }">
+                  {{ prod.estadoAprobacion || 'APROBADO' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  @if (prod.estadoAprobacion === 'PENDIENTE') {
+                    <button class="btn-sm btn-approve" (click)="aprobar(prod.id)">
+                      Aprobar
+                    </button>
+                    <button class="btn-sm btn-reject" (click)="rechazar(prod.id)">
+                      Rechazar
+                    </button>
+                  }
+                  <button class="btn-sm btn-edit" (click)="seleccionarParaEdicion(prod)">
+                    Editar
+                  </button>
+                  <button class="btn-sm btn-delete" (click)="eliminar(prod.id)">
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                No se encontraron productos con los criterios indicados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    @if (filteredProductos.length > pageSize) {
+      <div class="pagination-container">
+        <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredProductos.length }}</span>
+        <div class="pagination-buttons">
+          <button class="pagination-btn" (click)="prevPage()" [disabled]="currentPage === 1">Anterior</button>
+          <button class="pagination-btn" (click)="nextPage()" [disabled]="endIndex >= filteredProductos.length">Siguiente</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

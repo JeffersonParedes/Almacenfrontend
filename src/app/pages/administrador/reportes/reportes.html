@@ -1,0 +1,70 @@
+<div class="reportes-view">
+  <div class="view-header">
+    <h1>Generador de Reportes PDF</h1>
+  </div>
+
+  <div class="grid-layout">
+    <!-- Reporte de Suscripciones -->
+    <div class="card">
+      <div class="card-top">
+        <h3>💳 Reporte de Facturación y Suscripciones</h3>
+        <p>Genera un archivo PDF detallado con el registro de pagos, planes de suscripciones y vigencia contractual.</p>
+
+        <div class="form-group">
+          <label>Inquilino / Empresa</label>
+          <select name="empresaId" [(ngModel)]="suscripcionParams.empresaId">
+            <option [value]="''">TODAS LAS EMPRESAS</option>
+            @for (emp of empresas; track emp.id) {
+              <option [value]="emp.id">{{ emp.razonSocial }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Estado del Pago</label>
+          <select name="estadoSuscripcion" [(ngModel)]="suscripcionParams.estadoSuscripcion">
+            <option value="">TODOS LOS ESTADOS</option>
+            <option value="PAGADO">PAGADO</option>
+            <option value="VENCIDO">VENCIDO</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Inicio Desde</label>
+          <input type="date" name="fechaInicio" [(ngModel)]="suscripcionParams.fechaInicio">
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Inicio Hasta</label>
+          <input type="date" name="fechaFin" [(ngModel)]="suscripcionParams.fechaFin">
+        </div>
+      </div>
+
+      <button class="btn-download" (click)="descargarReporteSuscripciones()">
+        <span>Descargar PDF</span>
+        <span>📥</span>
+      </button>
+    </div>
+
+    <!-- Reporte del Dashboard Ejecutivo -->
+    <div class="card">
+      <div class="card-top">
+        <h3>📊 Resumen Ejecutivo del Dashboard SaaS</h3>
+        <p>Descarga un informe administrativo oficial que recopila los indicadores clave de crecimiento de inquilinos, tasas de suspensión y renovaciones activas registradas en la base de datos.</p>
+        
+        <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 2rem;">
+          <ul style="color: #cbd5e1; font-size: 0.85rem; line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+            <li>Recuento de empresas registradas (Activas y Suspendidas).</li>
+            <li>Listado de cobros pendientes de verificación.</li>
+            <li>Estadísticas de crecimiento de contratos mensuales.</li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="btn-download" (click)="descargarReporteDashboard()">
+        <span>Descargar PDF Resumen</span>
+        <span>📥</span>
+      </button>
+    </div>
+  </div>
+</div>

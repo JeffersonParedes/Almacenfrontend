@@ -1,0 +1,89 @@
+<div class="page-header">
+  <h2 class="page-title">Inventario Real en Bodega</h2>
+  <div class="page-subtitle">Visualiza los saldos físicos de cada producto en tus diferentes almacenes en tiempo real.</div>
+</div>
+
+<div class="card">
+  <h3 class="card-title">Existencias en Almacén</h3>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <div class="search-input-container">
+      <svg class="search-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L20.47,19.76L19.04,21.19L13.01,15.16C11.87,16 10.39,16.5 8.5,16.5A6.5,6.5 0 0,1 2,10A6.5,6.5 0 0,1 8.5,3.5H9.5M9.5,5.5H8.5A4.5,4.5 0 0,0 4,10A4.5,4.5 0 0,0 8.5,14.5H9.5A4.5,4.5 0 0,0 14,10A4.5,4.5 0 0,0 9.5,5.5Z"/></svg>
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar producto por nombre o código..." (input)="onFilterChange()">
+    </div>
+
+    <div class="filter-controls">
+      <select [(ngModel)]="selectedAlmacenFilter" (change)="onAlmacenFilterChange()" style="padding: 0.5rem 1rem;">
+        <option value="">Todos los Almacenes</option>
+        @for (alm of almacenes; track alm.id) {
+          <option [value]="alm.id">{{ alm.nombre }}</option>
+        }
+      </select>
+
+      <label class="toggle-container">
+        <input type="checkbox" [(ngModel)]="onlyCriticalStock" (change)="onFilterChange()">
+        <span>Mostrar sólo Stock Crítico ⚠️</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Almacén</th>
+          <th>Stock Actual</th>
+          <th>Stock Mínimo</th>
+          <th>Precio Unit.</th>
+          <th>Valorización</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of pagedInventario; track item.id) {
+          <tr>
+            <td><small style="color: #94a3b8;">{{ item.producto?.codigoBarras || 'N/A' }}</small></td>
+            <td><strong>{{ item.producto?.nombre }}</strong></td>
+            <td>{{ item.almacen?.nombre }}</td>
+            <td [class.text-red]="item.stockActual <= item.stockMinimo">
+              <strong>{{ item.stockActual }}</strong>
+            </td>
+            <td>{{ item.stockMinimo }}</td>
+            <td>S/. {{ item.producto?.precio | number:'1.2-2' }}</td>
+            <td>
+              <strong>S/. {{ (item.stockActual * (item.producto?.precio || 0)) | number:'1.2-2' }}</strong>
+            </td>
+            <td>
+              @if (item.stockActual <= item.stockMinimo) {
+                <span class="badge badge-low">Bajo Stock</span>
+              } @else {
+                <span class="badge badge-ok">Normal</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty-state">
+              No se encontraron existencias en el inventario que cumplan con los filtros indicados.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  @if (filteredInventario.length > pageSize) {
+    <div class="pagination-container">
+      <span>Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ filteredInventario.length }}</span>
+      <div class="pagination-buttons">
+        <button class="pagination-btn" (click)="prevPage()" [disabled]="currentPage === 1">Anterior</button>
+        <button class="pagination-btn" (click)="nextPage()" [disabled]="endIndex >= filteredInventario.length">Siguiente</button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,76 @@
+<div class="page-header">
+  <h2 class="page-title">Mi Perfil de Usuario</h2>
+  <div class="page-subtitle">Administra tu información personal, correo electrónico y credenciales de acceso de seguridad.</div>
+</div>
+
+<div class="profile-layout">
+  <!-- Tarjeta de Resumen -->
+  <div class="card">
+    <div class="profile-summary">
+      <div class="avatar-large">{{ initials }}</div>
+      <h3 class="user-display-name">{{ userData?.nombreCompleto || 'Cargando...' }}</h3>
+      <span class="user-display-role">DUEÑO / BODEGUERO</span>
+      <span class="user-display-email">{{ userData?.correo }}</span>
+      
+      <div class="meta-details">
+        <div class="meta-row">
+          <span class="meta-label">Usuario:</span>
+          <span class="meta-value"><code>{{ userData?.usuario }}</code></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">ID Empresa:</span>
+          <span class="meta-value">{{ userData?.empresaId || '-' }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Estado Cuenta:</span>
+          <span class="meta-value" style="color: #34d399; font-weight: 700;">ACTIVO</span>
+        </div>
+      </div>
+
+      <button class="btn-logout" (click)="logout()">
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjeta de Edición -->
+  <div class="card">
+    <h3 class="card-title">Actualizar Información Personal</h3>
+    
+    <div class="form-group">
+      <label>Nombre Completo *</label>
+      <input type="text" [(ngModel)]="formProfile.nombreCompleto">
+    </div>
+
+    <div class="form-group">
+      <label>Correo Electrónico *</label>
+      <input type="email" [(ngModel)]="formProfile.correo">
+    </div>
+
+    <div class="form-group">
+      <label>Nombre de Usuario *</label>
+      <input type="text" [(ngModel)]="formProfile.usuario">
+    </div>
+
+    <h3 class="card-title" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+      Seguridad (Cambio de Contraseña)
+    </h3>
+    
+    <div class="form-group" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+      <div>
+        <label>Nueva Contraseña (Dejar vacío para no modificar)</label>
+        <input type="password" [(ngModel)]="newPassword" placeholder="Escriba la nueva clave...">
+      </div>
+      <div>
+        <label>Confirmar Nueva Contraseña</label>
+        <input type="password" [(ngModel)]="confirmPassword" placeholder="Repita la nueva clave...">
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+      <button class="btn-primary" (click)="actualizarPerfil()">
+        Guardar Cambios
+      </button>
+    </div>
+  </div>
+</div>

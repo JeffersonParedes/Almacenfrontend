@@ -1,0 +1,36 @@
+<div class="login-wrapper">
+  <div class="glass-card">
+    <div class="logo-area">
+      <div class="logo-icon">📦</div>
+      <h1>Gestor de Almacén</h1>
+      <p>Plataforma SaaS Multi-Tenant</p>
+    </div>
+
+    <form (submit)="onLogin(); $event.preventDefault()" class="login-form">
+      <div class="input-group">
+        <label for="usuario">Usuario</label>
+        <div class="input-wrapper">
+          <span class="icon">👤</span>
+          <input id="usuario" name="usuario" [(ngModel)]="credentials.usuario" placeholder="Ingresa tu usuario" type="text" required autocomplete="username">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="contrasena">Contraseña</label>
+        <div class="input-wrapper">
+          <span class="icon">🔒</span>
+          <input id="contrasena" name="contrasena" [(ngModel)]="credentials.contrasena" placeholder="Ingresa tu contraseña" type="password" required autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <span>Ingresar</span>
+        <span class="arrow">→</span>
+      </button>
+    </form>
+
+    <div class="footer-note">
+      <p>© 2026 Antigravity SaaS Inc.</p>
+    </div>
+  </div>
+</div>
