@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EmpresaService } from '../../../services/empresa';
 import { AdministradorService } from '../../../services/administrador';
@@ -35,7 +35,8 @@ export class AdministradorEmpresasComponent implements OnInit {
 
   constructor(
     private empresaService: EmpresaService,
-    private administradorService: AdministradorService
+    private administradorService: AdministradorService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -46,6 +47,7 @@ export class AdministradorEmpresasComponent implements OnInit {
     this.empresaService.listarTodas().subscribe({
       next: (res) => {
         this.empresas = res;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar empresas', err);

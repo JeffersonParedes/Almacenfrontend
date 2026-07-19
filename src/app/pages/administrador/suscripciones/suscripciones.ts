@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { AdministradorService } from '../../../services/administrador';
@@ -25,7 +25,8 @@ export class AdministradorSuscripcionesComponent implements OnInit {
 
   constructor(
     private administradorService: AdministradorService,
-    private suscripcionService: SuscripcionService
+    private suscripcionService: SuscripcionService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -37,6 +38,7 @@ export class AdministradorSuscripcionesComponent implements OnInit {
     this.administradorService.consultarSuscripciones().subscribe({
       next: (res) => {
         this.suscripciones = res;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar suscripciones', err);
