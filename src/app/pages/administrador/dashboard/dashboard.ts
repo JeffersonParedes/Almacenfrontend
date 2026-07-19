@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { DashboardService } from '../../../services/dashboard';
 import { NotificacionService } from '../../../services/notificacion';
 import { AuthService } from '../../../services/auth';
@@ -24,7 +24,8 @@ export class AdministradorDashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private notificacionService: NotificacionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -40,6 +41,7 @@ export class AdministradorDashboardComponent implements OnInit {
     this.dashboardService.obtenerDashboardAdmin().subscribe({
       next: (res) => {
         this.stats = res;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar estadísticas', err);
@@ -52,6 +54,7 @@ export class AdministradorDashboardComponent implements OnInit {
       next: (res) => {
         // Mostrar máximo 5 notificaciones recientes
         this.notifications = res.slice(0, 5);
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar notificaciones', err);

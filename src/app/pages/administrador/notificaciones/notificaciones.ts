@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NotificacionService } from '../../../services/notificacion';
 import { AdministradorService } from '../../../services/administrador';
@@ -28,7 +28,8 @@ export class AdministradorNotificacionesComponent implements OnInit {
   constructor(
     private notificacionService: NotificacionService,
     private administradorService: AdministradorService,
-    private empresaService: EmpresaService
+    private empresaService: EmpresaService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -40,6 +41,7 @@ export class AdministradorNotificacionesComponent implements OnInit {
     this.notificacionService.consultarPorAdministrador().subscribe({
       next: (res) => {
         this.notifications = res;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar notificaciones', err);
@@ -51,6 +53,7 @@ export class AdministradorNotificacionesComponent implements OnInit {
     this.empresaService.listarTodas().subscribe({
       next: (res) => {
         this.empresas = res;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar empresas', err);
