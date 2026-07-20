@@ -244,7 +244,9 @@ export class EmpleadoProductosComponent implements OnInit {
       usuarioId: Number(payload.usuarioId),
       tipo: 'PRODUCTO',
       referenciaId: this.editProposal.id,
-      observacion: `Solicitud de MODIFICACIÓN para producto (ID: ${this.editProposal.id}). Cambios propuestos: Nombre: "${this.editProposal.nombre}", Precio: S/. ${this.editProposal.precio}. Observación: ${this.editReason}`
+      nombrePropuesto: this.editProposal.nombre,
+      precioPropuesto: this.editProposal.precio,
+      observacion: this.editReason
     }).subscribe({
       next: () => {
         alert('Solicitud de modificación enviada correctamente al Bodeguero.');

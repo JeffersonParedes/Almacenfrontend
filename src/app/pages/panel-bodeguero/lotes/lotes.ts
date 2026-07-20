@@ -94,6 +94,26 @@ export class LotesComponent implements OnInit {
     });
   }
 
+  onProductoRegistroChange() {
+    if (!this.formLote.productoId) return;
+    const prodId = Number(this.formLote.productoId);
+    this.loteService.listarLotesPorProducto(prodId).subscribe({
+      next: (lotesDelProducto) => {
+        if (lotesDelProducto && lotesDelProducto.length > 0) {
+          // Tomamos el lote más reciente (por fecha de creación) como referencia de costo
+          const ultimoLote = [...lotesDelProducto].sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+          this.formLote.costoCompra = ultimoLote.costoCompra;
+        } else {
+          this.formLote.costoCompra = 0;
+        }
+        this.cdRef.detectChanges();
+      },
+      error: (err) => console.error('Error al obtener costo de referencia del producto:', err)
+    });
+  }
+
   registrarLote() {
     if (!this.formLote.productoId) {
       alert('Debe seleccionar un producto');

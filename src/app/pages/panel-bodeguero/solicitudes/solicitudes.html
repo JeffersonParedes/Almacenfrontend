@@ -58,7 +58,23 @@
               </span>
             </td>
             <td><strong>{{ req.nombreUsuario }}</strong></td>
-            <td>{{ req.observacion || 'Propuesta de catálogo' }}</td>
+            <td>
+              @if (req.tipo === 'PRODUCTO' && (req.nombrePropuesto || req.precioPropuesto)) {
+                <div>
+                  @if (req.nombrePropuesto) {
+                    <div><strong>Nombre propuesto:</strong> {{ req.nombrePropuesto }}</div>
+                  }
+                  @if (req.precioPropuesto) {
+                    <div><strong>Precio propuesto:</strong> S/. {{ req.precioPropuesto }}</div>
+                  }
+                  @if (req.observacion) {
+                    <small style="color:#64748b;">Motivo: {{ req.observacion }}</small>
+                  }
+                </div>
+              } @else {
+                {{ req.observacion || 'Propuesta de catálogo' }}
+              }
+            </td>
             <td><small>{{ req.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</small></td>
             
             @if (currentTab === 'HISTORIAL') {

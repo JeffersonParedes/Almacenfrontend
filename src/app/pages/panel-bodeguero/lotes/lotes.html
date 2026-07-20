@@ -10,7 +10,7 @@
 
     <div class="form-group">
       <label>Producto *</label>
-      <select [(ngModel)]="formLote.productoId">
+      <select [(ngModel)]="formLote.productoId" (change)="onProductoRegistroChange()">
         <option [value]="undefined" disabled selected>Seleccione un producto...</option>
         @for (prod of productosAprobados; track prod.id) {
           <option [value]="prod.id">{{ prod.nombre }}</option>
