@@ -7,11 +7,16 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const expectedRoles = route.data?.['roles'] as Array<string>;
 
-  if (authService.currentUserValue && authService.hasRole(expectedRoles)) {
+  const user = authService.currentUserValue;
+  if (user && authService.hasRole(expectedRoles)) {
     return true;
   }
 
-  alert('Acceso denegado. No tienes permisos para ingresar a esta ruta.');
-  router.navigate(['/login']);
+  if (!user) {
+    router.navigate(['/login']);
+  } else {
+    alert('Acceso denegado. No tienes permisos para ingresar a esta vista.');
+    router.navigate(['/login']);
+  }
   return false;
 };
