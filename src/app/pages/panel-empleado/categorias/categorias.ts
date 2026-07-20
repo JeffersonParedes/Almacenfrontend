@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -51,7 +51,8 @@ export class EmpleadoCategoriasComponent implements OnInit {
   constructor(
     private categoriaService: CategoriaService,
     private solicitudService: SolicitudService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -63,6 +64,7 @@ export class EmpleadoCategoriasComponent implements OnInit {
       next: (data: Categoria[]) => {
         this.categorias = data;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err: any) => console.error('Error al cargar categorías:', err)
     });

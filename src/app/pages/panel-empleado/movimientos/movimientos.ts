@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -54,7 +54,8 @@ export class EmpleadoMovimientosComponent implements OnInit {
     private movimientoService: MovimientoService,
     private productoService: ProductoService,
     private almacenService: AlmacenService,
-    private loteService: LoteService
+    private loteService: LoteService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -65,14 +66,20 @@ export class EmpleadoMovimientosComponent implements OnInit {
 
   cargarProductos() {
     this.productoService.listarActivos().subscribe({
-      next: (data: Producto[]) => this.productos = data.filter(p => p.estadoAprobacion === 'APROBADO' || p.estadoAprobacion === 'APROBADA'),
+      next: (data: Producto[]) => {
+        this.productos = data.filter(p => p.estadoAprobacion === 'APROBADO' || p.estadoAprobacion === 'APROBADA');
+        this.cdRef.detectChanges();
+      },
       error: (err: any) => console.error('Error al cargar productos aprobados para Kardex:', err)
     });
   }
 
   cargarAlmacenes() {
     this.almacenService.getAlmacenes().subscribe({
-      next: (data: Almacen[]) => this.almacenes = data.filter(a => a.activo !== false),
+      next: (data: Almacen[]) => {
+        this.almacenes = data.filter(a => a.activo !== false);
+        this.cdRef.detectChanges();
+      },
       error: (err: any) => console.error('Error al cargar almacenes activos para Kardex:', err)
     });
   }
@@ -83,6 +90,7 @@ export class EmpleadoMovimientosComponent implements OnInit {
         // Mostrar movimientos más recientes primero
         this.movimientos = data.reverse();
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err: any) => console.error('Error al cargar Kardex general:', err)
     });
@@ -95,7 +103,10 @@ export class EmpleadoMovimientosComponent implements OnInit {
     if (this.formMovimiento.productoId) {
       const prodId = Number(this.formMovimiento.productoId);
       this.loteService.listarLotesPorProducto(prodId).subscribe({
-        next: (data: any[]) => this.lotesDisponibles = data,
+        next: (data: any[]) => {
+        this.lotesDisponibles = data;
+        this.cdRef.detectChanges();
+      },
         error: (err: any) => console.error('Error al cargar lotes para el producto:', err)
       });
     }
@@ -211,6 +222,7 @@ export class EmpleadoMovimientosComponent implements OnInit {
         };
         this.lotesDisponibles = [];
         this.cargarKardex();
+        this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error(err);

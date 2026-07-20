@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 
@@ -22,7 +22,8 @@ export class EmpleadoLayoutComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private notificacionService: NotificacionService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -38,6 +39,7 @@ export class EmpleadoLayoutComponent implements OnInit {
     this.notificacionService.consultarPorUsuario().subscribe({
       next: (data) => {
         this.unreadCount = data.filter(n => !n.leido).length;
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al consultar alertas en layout:', err)
     });
