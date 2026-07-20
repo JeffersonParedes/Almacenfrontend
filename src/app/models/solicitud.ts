@@ -5,6 +5,8 @@ export interface SolicitudRequest {
   referenciaId: number;
   estado?: string; // PENDIENTE | APROBADO | RECHAZADO
   observacion?: string;
+  nombrePropuesto?: string;
+  precioPropuesto?: number;
   aprobadoPor?: number;
   fechaSolicitud?: string;
   fechaRespuesta?: string;
@@ -19,6 +21,8 @@ export interface SolicitudResponse {
   referenciaId: number;
   estado: string; // PENDIENTE | APROBADO | RECHAZADO
   observacion?: string;
+  nombrePropuesto?: string;
+  precioPropuesto?: number;
   aprobadoPorId?: number;
   nombreAprobador?: string;
   fechaSolicitud: string;

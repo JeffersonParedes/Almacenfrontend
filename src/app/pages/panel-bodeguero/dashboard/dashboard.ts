@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -36,7 +36,8 @@ export class DashboardComponent implements OnInit {
     private almacenService: AlmacenService,
     private usuarioService: UsuarioService,
     private movimientoService: MovimientoService,
-    private solicitudService: SolicitudService
+    private solicitudService: SolicitudService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -50,14 +51,20 @@ export class DashboardComponent implements OnInit {
 
   cargarDashboardStats() {
     this.dashboardService.obtenerDashboardBodeguero().subscribe({
-      next: (res) => this.stats = res,
+      next: (res) => {
+        this.stats = res;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar métricas del dashboard:', err)
     });
   }
 
   cargarAlmacenesCount() {
     this.almacenService.getAlmacenes().subscribe({
-      next: (res) => this.almacenesCount = res.length,
+      next: (res) => {
+        this.almacenesCount = res.length;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar cantidad de almacenes:', err)
     });
   }
@@ -67,6 +74,7 @@ export class DashboardComponent implements OnInit {
       next: (res) => {
         // Filtrar solo empleados operativos (no bodegueros) si es necesario, o contar todos los usuarios creados
         this.empleadosCount = res.filter(u => u.rol === 'EMPLEADO').length;
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar cantidad de empleados:', err)
     });
@@ -77,6 +85,7 @@ export class DashboardComponent implements OnInit {
       next: (res) => {
         // Tomar los 5 movimientos más recientes
         this.recentMovements = res.reverse().slice(0, 5);
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar movimientos recientes:', err)
     });
@@ -87,6 +96,7 @@ export class DashboardComponent implements OnInit {
       next: (res) => {
         // Filtrar productos con stock actual <= stock mínimo
         this.criticalStockItems = res.filter(item => item.stockActual <= item.stockMinimo).slice(0, 5);
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar inventario crítico:', err)
     });
@@ -96,6 +106,7 @@ export class DashboardComponent implements OnInit {
     this.solicitudService.listarPorEmpresa().subscribe({
       next: (res) => {
         this.pendingRequests = res.filter(r => r.estado === 'PENDIENTE');
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar solicitudes pendientes:', err)
     });

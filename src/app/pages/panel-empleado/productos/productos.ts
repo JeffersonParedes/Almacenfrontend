@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -60,7 +60,8 @@ export class EmpleadoProductosComponent implements OnInit {
     private productoService: ProductoService,
     private categoriaService: CategoriaService,
     private solicitudService: SolicitudService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -73,6 +74,7 @@ export class EmpleadoProductosComponent implements OnInit {
       next: (data: Producto[]) => {
         this.productos = data;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err: any) => console.error('Error al cargar catálogo de productos:', err)
     });
@@ -80,7 +82,10 @@ export class EmpleadoProductosComponent implements OnInit {
 
   cargarCategorias() {
     this.categoriaService.listarActivas().subscribe({
-      next: (data: Categoria[]) => this.categorias = data,
+      next: (data: Categoria[]) => {
+        this.categorias = data;
+        this.cdRef.detectChanges();
+      },
       error: (err: any) => console.error('Error al cargar categorías activas:', err)
     });
   }
@@ -239,7 +244,9 @@ export class EmpleadoProductosComponent implements OnInit {
       usuarioId: Number(payload.usuarioId),
       tipo: 'PRODUCTO',
       referenciaId: this.editProposal.id,
-      observacion: `Solicitud de MODIFICACIÓN para producto (ID: ${this.editProposal.id}). Cambios propuestos: Nombre: "${this.editProposal.nombre}", Precio: S/. ${this.editProposal.precio}. Observación: ${this.editReason}`
+      nombrePropuesto: this.editProposal.nombre,
+      precioPropuesto: this.editProposal.precio,
+      observacion: this.editReason
     }).subscribe({
       next: () => {
         alert('Solicitud de modificación enviada correctamente al Bodeguero.');

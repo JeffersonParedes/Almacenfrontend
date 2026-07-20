@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -48,7 +48,8 @@ export class ReportesComponent implements OnInit {
   constructor(
     private reporteService: ReporteService,
     private almacenService: AlmacenService,
-    private categoriaService: CategoriaService
+    private categoriaService: CategoriaService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -58,14 +59,20 @@ export class ReportesComponent implements OnInit {
 
   cargarAlmacenes() {
     this.almacenService.getAlmacenes().subscribe({
-      next: (data) => this.almacenes = data.filter(a => a.activo !== false),
+      next: (data) => {
+        this.almacenes = data.filter(a => a.activo !== false);
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar almacenes para filtros de reportes:', err)
     });
   }
 
   cargarCategorias() {
     this.categoriaService.listarActivas().subscribe({
-      next: (data) => this.categorias = data,
+      next: (data) => {
+        this.categorias = data;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar categorías para filtros de reportes:', err)
     });
   }
@@ -80,6 +87,7 @@ export class ReportesComponent implements OnInit {
       next: (res) => {
         this.reporteService.descargarPdf(res);
         this.loadingInventario = false;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
@@ -100,6 +108,7 @@ export class ReportesComponent implements OnInit {
       next: (res) => {
         this.reporteService.descargarPdf(res);
         this.loadingMovimientos = false;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
@@ -119,6 +128,7 @@ export class ReportesComponent implements OnInit {
       next: (res) => {
         this.reporteService.descargarPdf(res);
         this.loadingProductos = false;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
@@ -134,6 +144,7 @@ export class ReportesComponent implements OnInit {
       next: (res) => {
         this.reporteService.descargarPdf(res);
         this.loadingDashboard = false;
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);

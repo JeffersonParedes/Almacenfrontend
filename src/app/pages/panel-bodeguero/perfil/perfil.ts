@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -35,7 +35,8 @@ export class PerfilComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private usuarioService: UsuarioService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -68,6 +69,7 @@ export class PerfilComponent implements OnInit {
           const names = data.nombreCompleto.split(' ');
           this.initials = names.slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('');
         }
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar perfil de Bodeguero:', err)
     });
@@ -113,6 +115,7 @@ export class PerfilComponent implements OnInit {
         this.newPassword = '';
         this.confirmPassword = '';
         this.cargarPerfil();
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);

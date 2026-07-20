@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -39,7 +39,9 @@ export class UsuariosComponent implements OnInit {
   startIndex = 0;
   endIndex = 0;
 
-  constructor(private usuarioService: UsuarioService) { }
+  constructor(private usuarioService: UsuarioService,
+    private cdRef: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.cargarUsuarios();
@@ -51,6 +53,7 @@ export class UsuariosComponent implements OnInit {
         // Filtrar para mostrar solo los empleados creados por el Bodeguero (con rol EMPLEADO)
         this.usuarios = data.filter(u => u.rol === 'EMPLEADO');
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar empleados:', err)
     });
@@ -145,6 +148,7 @@ export class UsuariosComponent implements OnInit {
             activo: true
           };
           this.cargarUsuarios();
+        this.cdRef.detectChanges();
         },
         error: (err) => {
           console.error(err);

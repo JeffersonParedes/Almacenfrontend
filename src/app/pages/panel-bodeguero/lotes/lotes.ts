@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -38,7 +38,8 @@ export class LotesComponent implements OnInit {
 
   constructor(
     private loteService: LoteService,
-    private productoService: ProductoService
+    private productoService: ProductoService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -50,6 +51,7 @@ export class LotesComponent implements OnInit {
       next: (prods) => {
         // Filtrar productos que estén explícitamente aprobados en el catálogo
         this.productosAprobados = prods.filter(p => p.estadoAprobacion === 'APROBADO' || p.estadoAprobacion === 'APROBADA');
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar productos para lotes:', err)
     });
@@ -74,15 +76,41 @@ export class LotesComponent implements OnInit {
     if (!this.selectedProductoId) return;
     const prodId = Number(this.selectedProductoId);
     this.loteService.listarLotesPorProducto(prodId).subscribe({
-      next: (data) => this.lotes = data,
+      next: (data) => {
+        this.lotes = data;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar lotes del producto:', err)
     });
   }
 
   cargarLotesPorVencer(dias: number) {
     this.loteService.consultarLotesPorVencer(dias).subscribe({
-      next: (data) => this.lotes = data,
+      next: (data) => {
+        this.lotes = data;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error(`Error al cargar lotes por vencer (${dias} días):`, err)
+    });
+  }
+
+  onProductoRegistroChange() {
+    if (!this.formLote.productoId) return;
+    const prodId = Number(this.formLote.productoId);
+    this.loteService.listarLotesPorProducto(prodId).subscribe({
+      next: (lotesDelProducto) => {
+        if (lotesDelProducto && lotesDelProducto.length > 0) {
+          // Tomamos el lote más reciente (por fecha de creación) como referencia de costo
+          const ultimoLote = [...lotesDelProducto].sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+          this.formLote.costoCompra = ultimoLote.costoCompra;
+        } else {
+          this.formLote.costoCompra = 0;
+        }
+        this.cdRef.detectChanges();
+      },
+      error: (err) => console.error('Error al obtener costo de referencia del producto:', err)
     });
   }
 
@@ -128,6 +156,7 @@ export class LotesComponent implements OnInit {
           cantidadActual: 0,
           costoCompra: 0
         };
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // Services
@@ -18,7 +18,9 @@ export class NotificacionesComponent implements OnInit {
   notifications: NotificacionResponse[] = [];
   unreadCount = 0;
 
-  constructor(private notificacionService: NotificacionService) { }
+  constructor(private notificacionService: NotificacionService,
+    private cdRef: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.cargarNotificaciones();
@@ -30,6 +32,7 @@ export class NotificacionesComponent implements OnInit {
         // Ordenar de más reciente a más antigua
         this.notifications = data.reverse();
         this.unreadCount = this.notifications.filter(n => !n.leido).length;
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar notificaciones:', err)
     });

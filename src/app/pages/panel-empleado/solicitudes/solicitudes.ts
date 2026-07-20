@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,7 +32,8 @@ export class EmpleadoSolicitudesComponent implements OnInit {
 
   constructor(
     private solicitudService: SolicitudService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -50,6 +51,7 @@ export class EmpleadoSolicitudesComponent implements OnInit {
         // Filtrar localmente por el ID del empleado que realizó la solicitud
         this.solicitudes = data.filter(sol => sol.usuarioId === loggedInUserId).reverse();
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar solicitudes del empleado:', err)
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -30,7 +30,9 @@ export class SolicitudesComponent implements OnInit {
   startIndex = 0;
   endIndex = 0;
 
-  constructor(private solicitudService: SolicitudService) { }
+  constructor(private solicitudService: SolicitudService,
+    private cdRef: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.cargarSolicitudes();
@@ -43,6 +45,7 @@ export class SolicitudesComponent implements OnInit {
         this.solicitudes = data.reverse();
         this.pendingCount = this.solicitudes.filter(s => s.estado === 'PENDIENTE').length;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar bandeja de solicitudes:', err)
     });
