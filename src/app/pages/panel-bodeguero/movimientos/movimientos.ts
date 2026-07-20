@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -52,7 +52,8 @@ export class MovimientosComponent implements OnInit {
     private movimientoService: MovimientoService,
     private productoService: ProductoService,
     private almacenService: AlmacenService,
-    private loteService: LoteService
+    private loteService: LoteService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -65,6 +66,7 @@ export class MovimientosComponent implements OnInit {
     this.productoService.listarActivos().subscribe({
       next: (data) => {
         this.productosAprobados = data.filter(p => p.estadoAprobacion === 'APROBADO' || p.estadoAprobacion === 'APROBADA');
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar productos para movimientos:', err)
     });
@@ -74,6 +76,7 @@ export class MovimientosComponent implements OnInit {
     this.almacenService.getAlmacenes().subscribe({
       next: (data) => {
         this.almacenes = data.filter(a => a.activo !== false);
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar almacenes para movimientos:', err)
     });
@@ -85,6 +88,7 @@ export class MovimientosComponent implements OnInit {
         // Ordenar del más reciente al más antiguo
         this.kardex = data.reverse();
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar historial del Kardex:', err)
     });
@@ -104,7 +108,10 @@ export class MovimientosComponent implements OnInit {
     const prodId = Number(this.formMovimiento.productoId);
     
     this.loteService.listarLotesPorProducto(prodId).subscribe({
-      next: (data) => this.lotesProducto = data,
+      next: (data) => {
+        this.lotesProducto = data;
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar lotes para el producto:', err)
     });
   }
@@ -168,6 +175,7 @@ export class MovimientosComponent implements OnInit {
           destinoAlmacenId: undefined
         };
         this.lotesProducto = [];
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);

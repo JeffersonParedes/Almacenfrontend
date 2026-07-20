@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -38,7 +38,8 @@ export class ProductosComponent implements OnInit {
 
   constructor(
     private productoService: ProductoService,
-    private categoriaService: CategoriaService
+    private categoriaService: CategoriaService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -51,6 +52,7 @@ export class ProductosComponent implements OnInit {
       next: (data) => {
         this.productos = data;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar productos:', err)
     });
@@ -60,6 +62,7 @@ export class ProductosComponent implements OnInit {
     this.categoriaService.listarActivas().subscribe({
       next: (data) => {
         this.categoriasActivas = data;
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar categorías activas:', err)
     });
@@ -145,6 +148,7 @@ export class ProductosComponent implements OnInit {
           alert('Producto creado con éxito.');
           this.formProducto = { nombre: '', precio: 0, categoriaId: undefined };
           this.cargarProductos();
+        this.cdRef.detectChanges();
         },
         error: (err) => {
           console.error(err);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService, UserTokenPayload } from '../../../services/auth';
@@ -21,7 +21,8 @@ export class LayoutComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private notificacionService: NotificacionService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -55,6 +56,7 @@ export class LayoutComponent implements OnInit {
     this.notificacionService.consultarPorUsuario().subscribe({
       next: (notifs) => {
         this.unreadCount = notifs.filter(n => !n.leido).length;
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar notificaciones no leídas:', err)
     });

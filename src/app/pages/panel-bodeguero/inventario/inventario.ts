@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -36,7 +36,8 @@ export class InventarioComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
-    private almacenService: AlmacenService
+    private almacenService: AlmacenService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -46,7 +47,10 @@ export class InventarioComponent implements OnInit {
 
   cargarAlmacenes() {
     this.almacenService.getAlmacenes().subscribe({
-      next: (data) => this.almacenes = data.filter(a => a.activo !== false),
+      next: (data) => {
+        this.almacenes = data.filter(a => a.activo !== false);
+        this.cdRef.detectChanges();
+      },
       error: (err) => console.error('Error al cargar almacenes para filtros:', err)
     });
   }
@@ -58,6 +62,7 @@ export class InventarioComponent implements OnInit {
         next: (data) => {
           this.inventario = data;
           this.filtrarYPaginar();
+        this.cdRef.detectChanges();
         },
         error: (err) => console.error('Error al cargar inventario total:', err)
       });
@@ -68,6 +73,7 @@ export class InventarioComponent implements OnInit {
         next: (data) => {
           this.inventario = data;
           this.filtrarYPaginar();
+        this.cdRef.detectChanges();
         },
         error: (err) => console.error('Error al cargar inventario de almacén:', err)
       });

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -33,7 +33,9 @@ export class AlmacenesComponent implements OnInit {
   startIndex = 0;
   endIndex = 0;
 
-  constructor(private almacenService: AlmacenService) { }
+  constructor(private almacenService: AlmacenService,
+    private cdRef: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.cargarAlmacenes();
@@ -44,6 +46,7 @@ export class AlmacenesComponent implements OnInit {
       next: (data) => {
         this.almacenes = data;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar almacenes:', err)
     });
@@ -136,6 +139,7 @@ export class AlmacenesComponent implements OnInit {
           alert('Almacén creado con éxito.');
           this.formAlmacen = { nombre: '', direccion: '' };
           this.cargarAlmacenes();
+        this.cdRef.detectChanges();
         },
         error: (err) => alert('Error al crear el almacén.')
       });

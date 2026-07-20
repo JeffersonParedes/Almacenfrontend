@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -32,7 +32,9 @@ export class CategoriasComponent implements OnInit {
   startIndex = 0;
   endIndex = 0;
 
-  constructor(private categoriaService: CategoriaService) { }
+  constructor(private categoriaService: CategoriaService,
+    private cdRef: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this.cargarCategorias();
@@ -43,6 +45,7 @@ export class CategoriasComponent implements OnInit {
       next: (data) => {
         this.categorias = data;
         this.filtrarYPaginar();
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar categorías:', err)
     });
@@ -112,6 +115,7 @@ export class CategoriasComponent implements OnInit {
           alert('Categoría creada con éxito.');
           this.formCategoria = { nombre: '', descripcion: '' };
           this.cargarCategorias();
+        this.cdRef.detectChanges();
         },
         error: () => alert('Error al registrar la categoría.')
       });
