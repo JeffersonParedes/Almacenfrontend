@@ -7,6 +7,7 @@ export interface Producto {
   nombre: string;
   descripcion?: string;
   precio: number;
+  stockMinimo?: number;
   imagenUrl?: string;
   estadoAprobacion?: string; // PENDIENTE | APROBADO | RECHAZADO
   estado?: string;

@@ -1,14 +1,16 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // Services
 import { LoteService } from '../../../services/lote.service';
 import { ProductoService } from '../../../services/producto';
+import { AlmacenService } from '../../../services/almacen';
 
 // Models
 import { LoteRequest, LoteResponse } from '../../../models/lote';
 import { Producto } from '../../../models/producto';
+import { Almacen } from '../../../models/almacen';
 
 @Component({
   selector: 'app-bodeguero-lotes',
@@ -19,12 +21,16 @@ import { Producto } from '../../../models/producto';
 })
 export class LotesComponent implements OnInit {
   productosAprobados: Producto[] = [];
+  almacenes: Almacen[] = [];
   lotes: LoteResponse[] = [];
+
+  fechaHoyStr: string = new Date().toISOString().split('T')[0];
 
   // Form State
   formLote: LoteRequest = {
-    empresaId: 0, // Injected by backend
+    empresaId: 0,
     productoId: 0,
+    almacenId: undefined,
     numeroLote: '',
     fechaFabricacion: undefined,
     fechaVencimiento: undefined,
@@ -39,22 +45,41 @@ export class LotesComponent implements OnInit {
   constructor(
     private loteService: LoteService,
     private productoService: ProductoService,
-    private cdRef: ChangeDetectorRef
+    private almacenService: AlmacenService
   ) { }
 
   ngOnInit() {
     this.cargarProductosAprobados();
+    this.cargarAlmacenes();
   }
 
   cargarProductosAprobados() {
     this.productoService.listarActivos().subscribe({
       next: (prods) => {
-        // Filtrar productos que estén explícitamente aprobados en el catálogo
         this.productosAprobados = prods.filter(p => p.estadoAprobacion === 'APROBADO' || p.estadoAprobacion === 'APROBADA');
-        this.cdRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar productos para lotes:', err)
     });
+  }
+
+  cargarAlmacenes() {
+    this.almacenService.getAlmacenes().subscribe({
+      next: (alms) => {
+        this.almacenes = alms.filter(a => a.activo !== false);
+        if (this.almacenes.length > 0 && !this.formLote.almacenId) {
+          this.formLote.almacenId = this.almacenes[0].id;
+        }
+      },
+      error: (err) => console.error('Error al cargar almacenes para lotes:', err)
+    });
+  }
+
+  onProductoRegistroChange() {
+    if (!this.formLote.productoId) return;
+    const selectedProd = this.productosAprobados.find(p => p.id === Number(this.formLote.productoId));
+    if (selectedProd) {
+      this.formLote.costoCompra = selectedProd.precio || 0;
+    }
   }
 
   onQueryModeChange() {
@@ -76,87 +101,77 @@ export class LotesComponent implements OnInit {
     if (!this.selectedProductoId) return;
     const prodId = Number(this.selectedProductoId);
     this.loteService.listarLotesPorProducto(prodId).subscribe({
-      next: (data) => {
-        this.lotes = data;
-        this.cdRef.detectChanges();
-      },
+      next: (data) => this.lotes = data,
       error: (err) => console.error('Error al cargar lotes del producto:', err)
     });
   }
 
   cargarLotesPorVencer(dias: number) {
     this.loteService.consultarLotesPorVencer(dias).subscribe({
-      next: (data) => {
-        this.lotes = data;
-        this.cdRef.detectChanges();
-      },
+      next: (data) => this.lotes = data,
       error: (err) => console.error(`Error al cargar lotes por vencer (${dias} días):`, err)
-    });
-  }
-
-  onProductoRegistroChange() {
-    if (!this.formLote.productoId) return;
-    const prodId = Number(this.formLote.productoId);
-    this.loteService.listarLotesPorProducto(prodId).subscribe({
-      next: (lotesDelProducto) => {
-        if (lotesDelProducto && lotesDelProducto.length > 0) {
-          // Tomamos el lote más reciente (por fecha de creación) como referencia de costo
-          const ultimoLote = [...lotesDelProducto].sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-          this.formLote.costoCompra = ultimoLote.costoCompra;
-        } else {
-          this.formLote.costoCompra = 0;
-        }
-        this.cdRef.detectChanges();
-      },
-      error: (err) => console.error('Error al obtener costo de referencia del producto:', err)
     });
   }
 
   registrarLote() {
     if (!this.formLote.productoId) {
-      alert('Debe seleccionar un producto');
+      alert('Debe seleccionar un producto del catálogo.');
       return;
     }
-    if (!this.formLote.numeroLote.trim()) {
-      alert('El número de lote es obligatorio');
+    if (!this.formLote.almacenId) {
+      alert('Debe seleccionar un almacén de destino.');
       return;
     }
-    if (this.formLote.cantidadActual === undefined || this.formLote.cantidadActual === null || this.formLote.cantidadActual < 0) {
-      alert('La cantidad actual debe ser mayor o igual a 0');
-      return;
-    }
-    if (this.formLote.costoCompra === undefined || this.formLote.costoCompra === null || this.formLote.costoCompra < 0) {
-      alert('El costo de compra debe ser mayor o igual a 0');
+    const numLote = (this.formLote.numeroLote || '').trim();
+    if (!numLote) {
+      alert('El número de lote es obligatorio.');
       return;
     }
 
-    // Convertir a tipo numérico correcto
+    // Validar fecha de vencimiento no menor a fecha actual
+    if (this.formLote.fechaVencimiento) {
+      const fechaVenc = new Date(this.formLote.fechaVencimiento + 'T00:00:00');
+      const hoy = new Date();
+      hoy.setHours(0,0,0,0);
+      fechaVenc.setHours(0,0,0,0);
+
+      if (fechaVenc < hoy) {
+        alert('La fecha de vencimiento no puede ser menor a la fecha actual.');
+        return;
+      }
+    }
+
+    // Validar cantidad inicial: entero positivo
+    const cant = Number(this.formLote.cantidadActual);
+    if (isNaN(cant) || cant <= 0 || !Number.isInteger(cant)) {
+      alert('La cantidad inicial debe ser un número entero mayor a cero.');
+      return;
+    }
+
     this.formLote.productoId = Number(this.formLote.productoId);
+    this.formLote.almacenId = Number(this.formLote.almacenId);
+    this.formLote.numeroLote = numLote;
 
     this.loteService.crearLote(this.formLote).subscribe({
       next: (res) => {
-        alert(`Lote ${res.numeroLote} registrado con éxito.`);
+        alert(`Lote ${res.numeroLote} registrado con éxito y guardado en inventario.`);
         
-        // Refrescar el listado si corresponde
         if (this.queryMode === 'PRODUCTO' && this.selectedProductoId === res.productoId) {
           this.cargarLotesPorProducto();
         } else if (this.queryMode.startsWith('VENCIMIENTO')) {
           this.onQueryModeChange();
         }
 
-        // Limpiar form
         this.formLote = {
           empresaId: 0,
           productoId: 0,
+          almacenId: this.almacenes.length > 0 ? this.almacenes[0].id : undefined,
           numeroLote: '',
           fechaFabricacion: undefined,
           fechaVencimiento: undefined,
           cantidadActual: 0,
           costoCompra: 0
         };
-        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
@@ -171,7 +186,6 @@ export class LotesComponent implements OnInit {
     if (!fechaVencimiento) return null;
     const expDate = new Date(fechaVencimiento + 'T00:00:00');
     const today = new Date();
-    // Resetear horas
     today.setHours(0,0,0,0);
     expDate.setHours(0,0,0,0);
     
@@ -192,7 +206,7 @@ export class LotesComponent implements OnInit {
   getSemaforoClase(fechaVencimiento?: string): string {
     const dias = this.calcularDiasRestantes(fechaVencimiento);
     if (dias === null) return 'gray';
-    if (dias < 0) return 'gray'; // Vencido
+    if (dias < 0) return 'gray';
     if (dias < 30) return 'red';
     if (dias <= 60) return 'yellow';
     return 'green';

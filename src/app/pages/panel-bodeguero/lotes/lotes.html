@@ -11,9 +11,19 @@
     <div class="form-group">
       <label>Producto *</label>
       <select [(ngModel)]="formLote.productoId" (change)="onProductoRegistroChange()">
-        <option [value]="undefined" disabled selected>Seleccione un producto...</option>
+        <option [value]="0" disabled selected>Seleccione un producto...</option>
         @for (prod of productosAprobados; track prod.id) {
-          <option [value]="prod.id">{{ prod.nombre }}</option>
+          <option [value]="prod.id">{{ prod.nombre }} (S/. {{ prod.precio | number:'1.2-2' }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Almacén de Destino *</label>
+      <select [(ngModel)]="formLote.almacenId">
+        <option [value]="undefined" disabled selected>Seleccione un almacén...</option>
+        @for (alm of almacenes; track alm.id) {
+          <option [value]="alm.id">{{ alm.nombre }}</option>
         }
       </select>
     </div>
@@ -29,18 +39,22 @@
     </div>
 
     <div class="form-group">
-      <label>Fecha de Vencimiento</label>
-      <input type="date" [(ngModel)]="formLote.fechaVencimiento">
+      <label>Fecha de Vencimiento *</label>
+      <input type="date" [(ngModel)]="formLote.fechaVencimiento" [min]="fechaHoyStr">
     </div>
 
     <div class="form-group">
-      <label>Cantidad Inicial *</label>
-      <input type="number" min="0" [(ngModel)]="formLote.cantidadActual" placeholder="0">
+      <label>Cantidad Inicial (Solo Enteros) *</label>
+      <input type="number" step="1" min="1" [(ngModel)]="formLote.cantidadActual" placeholder="1">
     </div>
 
     <div class="form-group">
-      <label>Costo de Compra Unitario (S/.) *</label>
-      <input type="number" step="0.01" min="0" [(ngModel)]="formLote.costoCompra" placeholder="0.00">
+      <label>Costo de Compra Unitario (Autocargado de Producto) *</label>
+      <input type="number" step="0.01" min="0" [(ngModel)]="formLote.costoCompra" readonly [disabled]="true" 
+             style="background: rgba(255,255,255,0.05); color: #34d399; font-weight: bold;" placeholder="0.00">
+      <small style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.2rem; display: block;">
+        🔒 Este valor se carga automáticamente del producto seleccionado y no se puede modificar manualmente.
+      </small>
     </div>
 
     <button class="btn-primary" (click)="registrarLote()">

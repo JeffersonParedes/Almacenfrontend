@@ -53,7 +53,6 @@ export class AlmacenesComponent implements OnInit {
   }
 
   filtrarYPaginar() {
-    // 1. Aplicar búsqueda
     if (!this.searchTerm.trim()) {
       this.filteredAlmacenes = [...this.almacenes];
     } else {
@@ -64,11 +63,8 @@ export class AlmacenesComponent implements OnInit {
       );
     }
 
-    // 2. Calcular límites de paginación
     this.startIndex = (this.currentPage - 1) * this.pageSize;
     this.endIndex = Math.min(this.startIndex + this.pageSize, this.filteredAlmacenes.length);
-
-    // 3. Extraer página actual
     this.pagedAlmacenes = this.filteredAlmacenes.slice(this.startIndex, this.endIndex);
   }
 
@@ -94,16 +90,29 @@ export class AlmacenesComponent implements OnInit {
   // --- CRUD ---
 
   guardar() {
-    if (!this.formAlmacen.nombre.trim()) {
-      alert('El nombre del almacén es obligatorio');
+    const nombre = this.formAlmacen.nombre.trim();
+    const direccion = (this.formAlmacen.direccion || '').trim();
+
+    if (!nombre) {
+      alert('El nombre del almacén es obligatorio.');
       return;
     }
 
+    // Validar duplicados en vista local previa
+    if (!this.editMode) {
+      if (this.almacenes.some(a => a.nombre.toLowerCase().trim() === nombre.toLowerCase())) {
+        alert('El nombre del almacén ya se encuentra registrado.');
+        return;
+      }
+      if (direccion && this.almacenes.some(a => (a.direccion || '').toLowerCase().trim() === direccion.toLowerCase())) {
+        alert('La dirección del almacén ya se encuentra registrada.');
+        return;
+      }
+    }
+
     if (this.editMode && this.editingId) {
-      // Editar
       this.almacenService.actualizarAlmacen(this.editingId, this.formAlmacen).subscribe({
         next: (updated) => {
-          // Procesar estado activo/inactivo si es necesario
           const original = this.almacenes.find(a => a.id === this.editingId);
           const originalActivo = original ? original.activo !== false : true;
 
@@ -118,8 +127,8 @@ export class AlmacenesComponent implements OnInit {
                 this.cancelarEdicion();
                 this.cargarAlmacenes();
               },
-              error: () => {
-                alert('Los datos se actualizaron, pero hubo un error al cambiar el estado.');
+              error: (err) => {
+                alert(err.error?.message || 'Los datos se actualizaron, pero hubo un error al cambiar el estado.');
                 this.cancelarEdicion();
                 this.cargarAlmacenes();
               }
@@ -130,18 +139,17 @@ export class AlmacenesComponent implements OnInit {
             this.cargarAlmacenes();
           }
         },
-        error: (err) => alert('Error al actualizar el almacén.')
+        error: (err) => alert(err.error?.message || 'Error al actualizar el almacén.')
       });
     } else {
-      // Crear
       this.almacenService.crearAlmacen(this.formAlmacen).subscribe({
         next: () => {
           alert('Almacén creado con éxito.');
           this.formAlmacen = { nombre: '', direccion: '' };
           this.cargarAlmacenes();
-        this.cdRef.detectChanges();
+          this.cdRef.detectChanges();
         },
-        error: (err) => alert('Error al crear el almacén.')
+        error: (err) => alert(err.error?.message || 'Error al crear el almacén.')
       });
     }
   }
@@ -173,7 +181,7 @@ export class AlmacenesComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('No se puede eliminar el almacén. Puede que contenga existencias o esté referenciado en el Kardex.');
+          alert(err.error?.message || 'No se puede eliminar el almacén. Puede que contenga existencias o esté referenciado en el Kardex.');
         }
       });
     }

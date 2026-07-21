@@ -1,6 +1,6 @@
 <div class="suscripciones-view">
   <div class="view-header">
-    <h1>Suscripciones y Facturación</h1>
+    <h1>Suscripciones y Facturación SaaS</h1>
     <button class="btn-renew" style="font-size: 0.9rem; padding: 0.6rem 1.2rem;" (click)="actualizarEstados()">
       🔄 Forzar Verificación de Vencimientos
     </button>
@@ -15,10 +15,12 @@
           <thead>
             <tr>
               <th>Empresa</th>
+              <th>Plan</th>
+              <th>Tipo</th>
               <th>Inicio</th>
-              <th>Fin</th>
+              <th>Vencimiento</th>
               <th>Monto</th>
-              <th>Estado Pago</th>
+              <th>Estado</th>
               <th>Acción</th>
             </tr>
           </thead>
@@ -26,8 +28,16 @@
             @for (sub of suscripciones; track sub.id) {
               <tr>
                 <td><strong>{{ sub.razonSocialEmpresa }}</strong></td>
+                <td>
+                  <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3);">
+                    {{ sub.planSuscripcion || 'BASICO' }}
+                  </span>
+                </td>
+                <td>
+                  <small style="color: #94a3b8;">{{ sub.tipoSuscripcion || 'PRIMER_REGISTRO' }}</small>
+                </td>
                 <td>{{ sub.fechaInicio }}</td>
-                <td>{{ sub.fechaFin }}</td>
+                <td><strong>{{ sub.fechaFin }}</strong></td>
                 <td>S/. {{ sub.montoPagado | number:'1.2-2' }}</td>
                 <td>
                   <span class="badge" [class.badge-paid]="sub.estadoPago === 'PAGADO'"
@@ -41,7 +51,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="empty-state">No hay suscripciones registradas.</td>
+                <td colspan="8" class="empty-state">No hay suscripciones registradas.</td>
               </tr>
             }
           </tbody>
@@ -51,48 +61,84 @@
 
     <!-- Formulario de Renovación -->
     <div class="card">
-      <h3>💳 Registrar Renovación</h3>
+      <h3>💳 Registrar Renovación de Suscripción</h3>
       @if (selectedSub) {
-        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">
-          Renovando suscripción de: <strong style="color: white;">{{ selectedSub.razonSocialEmpresa }}</strong>
-        </p>
+        <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+          <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.25rem;">
+            Empresa Seleccionada: <strong style="color: white; font-size: 1rem;">{{ selectedSub.razonSocialEmpresa }}</strong>
+          </p>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">
+            Vencimiento Actual: <strong style="color: #f59e0b;">{{ selectedSub.fechaFin }}</strong>
+          </p>
+        </div>
+
+        <!-- Alerta de Bloqueo si Falta Más de 1 Mes para Renovar -->
+        @if (!renovacionPermitida) {
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+            <h5 style="color: #f87171; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600;">⚠️ Renovación No Permitida Aún</h5>
+            <p style="color: #fca5a5; font-size: 0.88rem; white-space: pre-line; margin: 0; line-height: 1.5;">
+              {{ mensajeBloqueoRenovacion }}
+            </p>
+          </div>
+        }
 
         <form (submit)="renovar()">
+          
+          <!-- Únicos Campos Modificables: Plan de Suscripción y Método de Pago -->
           <div class="form-group">
-            <label>Fecha de Inicio *</label>
-            <input type="date" name="fechaInicio" [(ngModel)]="renovacionForm.fechaInicio" required>
-          </div>
-
-          <div class="form-group">
-            <label>Fecha de Fin *</label>
-            <input type="date" name="fechaFin" [(ngModel)]="renovacionForm.fechaFin" required>
-          </div>
-
-          <div class="form-group">
-            <label>Monto Pagado (S/.) *</label>
-            <input type="number" name="montoPagado" [(ngModel)]="renovacionForm.montoPagado" placeholder="0.00" required>
+            <label>Plan de Suscripción *</label>
+            <select name="planSuscripcion" [(ngModel)]="renovacionForm.planSuscripcion" (change)="recalcularPlan()" [disabled]="!renovacionPermitida || isProcesandoRenovacion">
+              <option value="PLAN BÁSICO">PLAN BÁSICO — S/. 15.00 (1 Mes)</option>
+              <option value="PLAN PRO">PLAN PRO — S/. 85.00 (6 Meses)</option>
+              <option value="PLAN PREMIUM">PLAN PREMIUM — S/. 150.00 (12 Meses)</option>
+            </select>
           </div>
 
           <div class="form-group">
             <label>Método de Pago *</label>
-            <select name="metodoPago" [(ngModel)]="renovacionForm.metodoPago">
-              <option value="TRANSFERENCIA">TRANSFERENCIA BANCARIA</option>
+            <select name="metodoPago" [(ngModel)]="renovacionForm.metodoPago" [disabled]="!renovacionPermitida || isProcesandoRenovacion">
+              <option value="TRANSFERENCIA BANCARIA">TRANSFERENCIA BANCARIA</option>
+              <option value="YAPE_PLIN">YAPE / PLIN</option>
+              <option value="TARJETA DE CRÉDITO/DÉBITO">TARJETA DE CRÉDITO/DÉBITO</option>
               <option value="EFECTIVO">EFECTIVO</option>
-              <option value="TARJETA">TARJETA DE CRÉDITO/DÉBITO</option>
             </select>
           </div>
 
-          <button type="submit" class="btn-primary">
-            Confirmar Pago y Renovar
+          <!-- Campos Calculados Automáticamente (Informativos y NO modificables manualmente) -->
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+            <h5 style="color: #34d399; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 600;">📊 Datos de la Renovación Calculados</h5>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
+              <div>
+                <span style="color: #94a3b8; display: block;">Monto A Pagar:</span>
+                <strong style="color: #34d399; font-size: 1.1rem;">S/. {{ renovacionForm.montoPagado | number:'1.2-2' }}</strong>
+              </div>
+              <div>
+                <span style="color: #94a3b8; display: block;">Duración Extensión:</span>
+                <strong style="color: white;">{{ renovacionForm.duracionTexto }}</strong>
+              </div>
+              <div>
+                <span style="color: #94a3b8; display: block;">Nueva Fecha Inicio:</span>
+                <strong style="color: white;">{{ renovacionForm.fechaInicio }}</strong>
+              </div>
+              <div>
+                <span style="color: #94a3b8; display: block;">Nueva Fecha Vencimiento:</span>
+                <strong style="color: #34d399;">{{ renovacionForm.fechaFin }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="!renovacionPermitida || isProcesandoRenovacion" style="width: 100%; justify-content: center;">
+            {{ isProcesandoRenovacion ? '⏳ Procesando Renovación...' : 'Confirmar Pago y Registrar Renovación' }}
           </button>
-          <button type="button" class="btn-renew" style="width: 100%; margin-top: 0.5rem; text-align: center;" (click)="cancelarRenovacion()">
+          <button type="button" class="btn-renew" style="width: 100%; margin-top: 0.5rem; text-align: center;" [disabled]="isProcesandoRenovacion" (click)="cancelarRenovacion()">
             Cancelar
           </button>
         </form>
       } @else {
         <div style="text-align: center; padding: 3rem; color: #475569;">
           <span style="font-size: 2.5rem; display: block; margin-bottom: 1rem;">💳</span>
-          Seleccione una empresa de la lista para renovar su suscripción.
+          Seleccione una empresa de la lista para gestionar la renovación de su suscripción.
         </div>
       }
     </div>

@@ -20,11 +20,14 @@ export class UsuariosComponent implements OnInit {
   filteredUsuarios: Usuario[] = [];
   pagedUsuarios: Usuario[] = [];
 
+  confirmarContrasena: string = '';
+
   // Form State
   formUsuario: Usuario = {
     usuario: '',
     contrasena: '',
     correo: '',
+    dni: '',
     nombreCompleto: '',
     rol: 'EMPLEADO',
     activo: true
@@ -50,7 +53,6 @@ export class UsuariosComponent implements OnInit {
   cargarUsuarios() {
     this.usuarioService.listarPorEmpresa().subscribe({
       next: (data) => {
-        // Filtrar para mostrar solo los empleados creados por el Bodeguero (con rol EMPLEADO)
         this.usuarios = data.filter(u => u.rol === 'EMPLEADO');
         this.filtrarYPaginar();
         this.cdRef.detectChanges();
@@ -67,7 +69,8 @@ export class UsuariosComponent implements OnInit {
       this.filteredUsuarios = this.usuarios.filter(u => 
         u.nombreCompleto.toLowerCase().includes(term) || 
         u.usuario.toLowerCase().includes(term) || 
-        (u.correo && u.correo.toLowerCase().includes(term))
+        (u.correo && u.correo.toLowerCase().includes(term)) ||
+        (u.dni && u.dni.toLowerCase().includes(term))
       );
     }
 
@@ -98,21 +101,55 @@ export class UsuariosComponent implements OnInit {
   // --- CRUD ---
 
   guardar() {
-    if (!this.formUsuario.nombreCompleto.trim()) {
-      alert('El nombre completo es obligatorio');
+    const nombre = this.formUsuario.nombreCompleto.trim();
+    const usuario = this.formUsuario.usuario.trim();
+    const correo = (this.formUsuario.correo || '').trim();
+    const dni = (this.formUsuario.dni || '').trim();
+    const contrasena = this.formUsuario.contrasena || '';
+
+    if (!nombre) {
+      alert('El nombre completo es obligatorio.');
       return;
     }
-    if (!this.formUsuario.correo || !this.formUsuario.correo.trim()) {
-      alert('El correo electrónico es obligatorio');
+    if (!correo) {
+      alert('El correo electrónico es obligatorio.');
       return;
     }
-    if (!this.formUsuario.usuario.trim()) {
-      alert('El nombre de usuario es obligatorio');
+    if (!usuario) {
+      alert('El nombre de usuario es obligatorio.');
+      return;
+    }
+    if (!dni || dni.length !== 8 || !/^\d+$/.test(dni)) {
+      alert('El DNI debe ser numérico y contener exactamente 8 dígitos.');
       return;
     }
 
+    if (!this.editMode) {
+      if (!contrasena || contrasena.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+      if (contrasena !== this.confirmarContrasena) {
+        alert('Las contraseñas no coinciden.');
+        return;
+      }
+    } else {
+      if (contrasena && contrasena.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+      if (contrasena && contrasena !== this.confirmarContrasena) {
+        alert('Las contraseñas no coinciden.');
+        return;
+      }
+    }
+
+    this.formUsuario.nombreCompleto = nombre;
+    this.formUsuario.usuario = usuario;
+    this.formUsuario.correo = correo;
+    this.formUsuario.dni = dni;
+
     if (this.editMode && this.editingId) {
-      // Si estamos editando y dejamos la contraseña vacía, enviamos undefined o mantenemos la misma
       const payload = { ...this.formUsuario };
       if (!payload.contrasena || !payload.contrasena.trim()) {
         delete payload.contrasena;
@@ -130,29 +167,16 @@ export class UsuariosComponent implements OnInit {
         }
       });
     } else {
-      // Crear
-      if (!this.formUsuario.contrasena || !this.formUsuario.contrasena.trim()) {
-        alert('La contraseña es obligatoria para nuevos empleados');
-        return;
-      }
-
       this.usuarioService.crearUsuario(this.formUsuario).subscribe({
         next: () => {
           alert('Empleado creado con éxito.');
-          this.formUsuario = {
-            usuario: '',
-            contrasena: '',
-            correo: '',
-            nombreCompleto: '',
-            rol: 'EMPLEADO',
-            activo: true
-          };
+          this.cancelarEdicion();
           this.cargarUsuarios();
-        this.cdRef.detectChanges();
+          this.cdRef.detectChanges();
         },
         error: (err) => {
           console.error(err);
-          alert(err.error?.message || 'Error al crear el empleado. El usuario puede estar en uso.');
+          alert(err.error?.message || 'El nombre de usuario o correo ya se encuentra registrado.');
         }
       });
     }
@@ -163,12 +187,14 @@ export class UsuariosComponent implements OnInit {
     this.editingId = user.id;
     this.formUsuario = {
       usuario: user.usuario,
-      contrasena: '', // Vacío por seguridad
+      contrasena: '',
       correo: user.correo,
+      dni: user.dni || '',
       nombreCompleto: user.nombreCompleto,
       rol: 'EMPLEADO',
       activo: user.activo
     };
+    this.confirmarContrasena = '';
   }
 
   cancelarEdicion() {
@@ -178,10 +204,12 @@ export class UsuariosComponent implements OnInit {
       usuario: '',
       contrasena: '',
       correo: '',
+      dni: '',
       nombreCompleto: '',
       rol: 'EMPLEADO',
       activo: true
     };
+    this.confirmarContrasena = '';
   }
 
   toggleEstado(user: Usuario) {
@@ -197,7 +225,7 @@ export class UsuariosComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        alert('Error al modificar el estado del empleado.');
+        alert(err.error?.message || 'Error al modificar el estado del empleado.');
       }
     });
   }

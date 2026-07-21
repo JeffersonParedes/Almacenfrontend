@@ -24,7 +24,7 @@ export class ProductosComponent implements OnInit {
   categoriasActivas: Categoria[] = [];
 
   // Form State
-  formProducto: Producto = { nombre: '', precio: 0, categoriaId: undefined };
+  formProducto: Producto = { nombre: '', precio: 0, stockMinimo: 0, categoriaId: undefined };
   editMode = false;
   editingId?: number;
 
@@ -69,7 +69,6 @@ export class ProductosComponent implements OnInit {
   }
 
   filtrarYPaginar() {
-    // 1. Filtrar búsqueda y categoría
     this.filteredProductos = this.productos.filter(p => {
       const matchSearch = !this.searchTerm.trim() || 
         p.nombre.toLowerCase().includes(this.searchTerm.toLowerCase().trim()) || 
@@ -82,11 +81,8 @@ export class ProductosComponent implements OnInit {
       return matchSearch && matchCategory;
     });
 
-    // 2. Límites
     this.startIndex = (this.currentPage - 1) * this.pageSize;
     this.endIndex = Math.min(this.startIndex + this.pageSize, this.filteredProductos.length);
-
-    // 3. Paginación
     this.pagedProductos = this.filteredProductos.slice(this.startIndex, this.endIndex);
   }
 
@@ -112,24 +108,41 @@ export class ProductosComponent implements OnInit {
   // --- CRUD ---
 
   guardar() {
-    if (!this.formProducto.nombre.trim()) {
-      alert('El nombre del producto es obligatorio');
-      return;
-    }
-    if (this.formProducto.precio === undefined || this.formProducto.precio === null || this.formProducto.precio < 0) {
-      alert('El precio debe ser un número válido mayor o igual a 0');
-      return;
-    }
-    if (!this.formProducto.categoriaId) {
-      alert('Debe seleccionar una categoría para el producto');
+    const nombre = this.formProducto.nombre.trim();
+    const codigoBarras = (this.formProducto.codigoBarras || '').trim();
+
+    if (!nombre) {
+      alert('El nombre del producto es obligatorio.');
       return;
     }
 
-    // Convertir de string a number si es necesario (el binding HTML a veces guarda ids como string)
+    if (this.formProducto.precio === undefined || this.formProducto.precio === null || this.formProducto.precio <= 0) {
+      alert('El precio unitario debe ser mayor a cero.');
+      return;
+    }
+
+    if (this.formProducto.stockMinimo !== undefined && this.formProducto.stockMinimo !== null && this.formProducto.stockMinimo < 0) {
+      alert('El stock mínimo no puede ser negativo.');
+      return;
+    }
+
+    if (!this.formProducto.categoriaId) {
+      alert('Debe seleccionar una categoría para el producto.');
+      return;
+    }
+
+    // Validar duplicado de código de barras en local
+    if (codigoBarras) {
+      const existeBarras = this.productos.some(p => (p.codigoBarras || '').trim().toLowerCase() === codigoBarras.toLowerCase() && p.id !== this.editingId);
+      if (existeBarras) {
+        alert('El código de barras ya se encuentra registrado.');
+        return;
+      }
+    }
+
     this.formProducto.categoriaId = Number(this.formProducto.categoriaId);
 
     if (this.editMode && this.editingId) {
-      // Editar
       this.productoService.actualizarProducto(this.editingId, this.formProducto).subscribe({
         next: () => {
           alert('Producto actualizado con éxito.');
@@ -142,17 +155,16 @@ export class ProductosComponent implements OnInit {
         }
       });
     } else {
-      // Crear directamente (Bodeguero crea con estado APROBADO)
       this.productoService.registrarProducto(this.formProducto).subscribe({
         next: () => {
           alert('Producto creado con éxito.');
-          this.formProducto = { nombre: '', precio: 0, categoriaId: undefined };
+          this.formProducto = { nombre: '', precio: 0, stockMinimo: 0, categoriaId: undefined };
           this.cargarProductos();
-        this.cdRef.detectChanges();
+          this.cdRef.detectChanges();
         },
         error: (err) => {
           console.error(err);
-          alert(err.error?.message || 'Error al crear el producto.');
+          alert(err.error?.message || 'El código de barras ya se encuentra registrado.');
         }
       });
     }
@@ -165,6 +177,7 @@ export class ProductosComponent implements OnInit {
       nombre: prod.nombre,
       codigoBarras: prod.codigoBarras,
       precio: prod.precio,
+      stockMinimo: prod.stockMinimo || 0,
       categoriaId: prod.categoria?.id || prod.categoriaId,
       descripcion: prod.descripcion,
       imagenUrl: prod.imagenUrl
@@ -174,7 +187,7 @@ export class ProductosComponent implements OnInit {
   cancelarEdicion() {
     this.editMode = false;
     this.editingId = undefined;
-    this.formProducto = { nombre: '', precio: 0, categoriaId: undefined };
+    this.formProducto = { nombre: '', precio: 0, stockMinimo: 0, categoriaId: undefined };
   }
 
   eliminar(id?: number) {
@@ -187,7 +200,7 @@ export class ProductosComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('Error al eliminar el producto.');
+          alert(err.error?.message || 'Error al eliminar el producto.');
         }
       });
     }
@@ -200,7 +213,7 @@ export class ProductosComponent implements OnInit {
         alert('Producto aprobado en el catálogo.');
         this.cargarProductos();
       },
-      error: (err) => alert('Error al aprobar el producto.')
+      error: (err) => alert(err.error?.message || 'Error al aprobar el producto.')
     });
   }
 
@@ -212,7 +225,7 @@ export class ProductosComponent implements OnInit {
           alert('Producto rechazado.');
           this.cargarProductos();
         },
-        error: (err) => alert('Error al rechazar el producto.')
+        error: (err) => alert(err.error?.message || 'Error al rechazar el producto.')
       });
     }
   }

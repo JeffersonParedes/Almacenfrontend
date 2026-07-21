@@ -1,6 +1,7 @@
 export interface LoteRequest {
   empresaId: number;
   productoId: number;
+  almacenId?: number;
   numeroLote: string;
   fechaFabricacion?: string;
   fechaVencimiento?: string;

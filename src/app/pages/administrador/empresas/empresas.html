@@ -48,15 +48,25 @@
       </div>
     </div>
 
-    <!-- Formulario de Registro Rápido SaaS -->
+    <!-- Formulario de Registro SaaS -->
     <div class="card">
-      <h3>✨ Registrar Nueva Empresa</h3>
+      <h3>✨ Registrar Nueva Empresa SaaS</h3>
       <form (submit)="registrar()" class="saas-form">
-        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1rem;">1. Datos de Empresa</h4>
+        
+        <!-- 1) DATOS DE LA EMPRESA -->
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          1. DATOS DE LA EMPRESA
+        </h4>
         
         <div class="form-group">
           <label>RUC (11 dígitos) *</label>
-          <input type="text" name="ruc" [(ngModel)]="registroForm.empresa.ruc" placeholder="RUC" maxlength="11" required>
+          <input type="text" name="ruc" [(ngModel)]="registroForm.empresa.ruc" 
+                 (blur)="validarRucBlur()" placeholder="RUC de 11 dígitos" maxlength="11" required>
+          @if (errores.ruc) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.ruc }}
+            </span>
+          }
         </div>
 
         <div class="form-group">
@@ -65,30 +75,57 @@
         </div>
 
         <div class="form-group">
-          <label>Correo Electrónico *</label>
-          <input type="email" name="correoContacto" [(ngModel)]="registroForm.empresa.correoContacto" placeholder="contacto@empresa.com" required>
+          <label>Correo Electrónico Empresarial *</label>
+          <input type="email" name="correoContacto" [(ngModel)]="registroForm.empresa.correoContacto" 
+                 (blur)="validarCorreoEmpresaBlur()" placeholder="contacto@empresa.com" required>
+          @if (errores.correoEmpresa) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.correoEmpresa }}
+            </span>
+          }
         </div>
 
         <div class="form-group">
-          <label>Teléfono</label>
-          <input type="text" name="telefonoContacto" [(ngModel)]="registroForm.empresa.telefonoContacto" placeholder="999888777">
+          <label>Teléfono de Contacto *</label>
+          <input type="text" name="telefonoContacto" [(ngModel)]="registroForm.empresa.telefonoContacto" 
+                 (blur)="validarTelefonoEmpresaBlur()" placeholder="999888777" required>
+          @if (errores.telefonoEmpresa) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.telefonoEmpresa }}
+            </span>
+          }
         </div>
 
         <div class="form-group">
-          <label>Dirección</label>
-          <input type="text" name="direccionPrincipal" [(ngModel)]="registroForm.empresa.direccionPrincipal" placeholder="Av. Principal 123">
+          <label>Dirección Principal *</label>
+          <input type="text" name="direccionPrincipal" [(ngModel)]="registroForm.empresa.direccionPrincipal" 
+                 (blur)="validarDireccionEmpresaBlur()" placeholder="Av. Principal 123" required>
+          @if (errores.direccionEmpresa) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.direccionEmpresa }}
+            </span>
+          }
         </div>
 
-        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">2. Cuenta Bodeguero Inicial</h4>
+        <!-- 2) CUENTA INICIAL DEL BODEGUERO -->
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">
+          2. CUENTA INICIAL DEL BODEGUERO
+        </h4>
 
         <div class="form-group">
-          <label>Usuario *</label>
-          <input type="text" name="usuarioBodeguero" [(ngModel)]="registroForm.usuarioBodeguero" placeholder="pepe_dueño" required>
+          <label>Usuario Bodeguero *</label>
+          <input type="text" name="usuarioBodeguero" [(ngModel)]="registroForm.usuarioBodeguero" 
+                 (blur)="validarUsuarioBodegueroBlur()" placeholder="usuario_bodeguero" required>
+          @if (errores.usuarioBodeguero) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.usuarioBodeguero }}
+            </span>
+          }
         </div>
 
         <div class="form-group">
           <label>Contraseña Temporal *</label>
-          <input type="password" name="contrasenaBodeguero" [(ngModel)]="registroForm.contrasenaBodeguero" placeholder="Min. 6 caracteres" required>
+          <input type="password" name="contrasenaBodeguero" [(ngModel)]="registroForm.contrasenaBodeguero" placeholder="Mínimo 6 caracteres" required>
         </div>
 
         <div class="form-group">
@@ -97,37 +134,77 @@
         </div>
 
         <div class="form-group">
-          <label>Correo Bodeguero *</label>
-          <input type="email" name="correoBodeguero" [(ngModel)]="registroForm.correoBodeguero" placeholder="pepe@empresa.com" required>
+          <label>Correo Electrónico Personal/Bodeguero *</label>
+          <input type="email" name="correoBodeguero" [(ngModel)]="registroForm.correoBodeguero" 
+                 (blur)="validarCorreoBodegueroBlur()" placeholder="pepe@empresa.com" required>
+          @if (errores.correoBodeguero) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.correoBodeguero }}
+            </span>
+          }
         </div>
 
         <div class="form-group">
-          <label>DNI *</label>
-          <input type="text" name="dniBodeguero" [(ngModel)]="registroForm.dniBodeguero" placeholder="8 dígitos" maxlength="8" required>
+          <label>DNI (8 dígitos) *</label>
+          <input type="text" name="dniBodeguero" [(ngModel)]="registroForm.dniBodeguero" 
+                 (blur)="validarDniBodegueroBlur()" placeholder="8 dígitos" maxlength="8" required>
+          @if (errores.dniBodeguero) {
+            <span class="error-banner" style="color: #ef4444; font-size: 0.82rem; margin-top: 0.25rem; display: block;">
+              ⚠️ {{ errores.dniBodeguero }}
+            </span>
+          }
         </div>
 
-        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">3. Suscripción SaaS</h4>
+        <!-- 3) SUSCRIPCIÓN SaaS -->
+        <h4 style="color: #8b5cf6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">
+          3. SUSCRIPCIÓN SaaS
+        </h4>
 
         <div class="form-group">
           <label>Plan de Suscripción *</label>
-          <select name="planSuscripcion" [(ngModel)]="registroForm.planSuscripcion">
-            <option value="PLAN MENSUAL BÁSICO">PLAN MENSUAL BÁSICO</option>
-            <option value="PLAN SEMESTRAL PRO">PLAN SEMESTRAL PRO</option>
-            <option value="PLAN ANUAL PREMIUM">PLAN ANUAL PREMIUM</option>
+          <select name="planSuscripcion" [(ngModel)]="registroForm.planSuscripcion" (change)="recalcularPlan()">
+            <option value="PLAN BÁSICO">PLAN BÁSICO — S/. 15.00 (1 Mes)</option>
+            <option value="PLAN PRO">PLAN PRO — S/. 85.00 (6 Meses)</option>
+            <option value="PLAN PREMIUM">PLAN PREMIUM — S/. 150.00 (12 Meses)</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Monto Cobrado (S/.) *</label>
-          <input type="number" name="montoPago" [(ngModel)]="registroForm.montoPago" placeholder="0.00" required>
+          <label>Método de Pago *</label>
+          <select name="metodoPago" [(ngModel)]="registroForm.metodoPago">
+            <option value="TRANSFERENCIA BANCARIA">TRANSFERENCIA BANCARIA</option>
+            <option value="YAPE_PLIN">YAPE / PLIN</option>
+            <option value="TARJETA DE CRÉDITO/DÉBITO">TARJETA DE CRÉDITO/DÉBITO</option>
+            <option value="EFECTIVO">EFECTIVO</option>
+          </select>
         </div>
 
-        <div class="form-group">
-          <label>Duración (Meses) *</label>
-          <input type="number" name="duracionMeses" [(ngModel)]="registroForm.duracionMeses" placeholder="1" required>
+        <!-- Campos Calculados Automáticamente (Informativos y NO modificables manualmente) -->
+        <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+          <h5 style="color: #a78bfa; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 600;">📊 Resumen Informativo Calculado Automáticamente</h5>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
+            <div>
+              <span style="color: #94a3b8; display: block;">Monto Pagado:</span>
+              <strong style="color: #34d399; font-size: 1.1rem;">S/. {{ registroForm.montoPago | number:'1.2-2' }}</strong>
+            </div>
+            <div>
+              <span style="color: #94a3b8; display: block;">Duración del Plan:</span>
+              <strong style="color: white;">{{ registroForm.duracionTexto }}</strong>
+            </div>
+            <div>
+              <span style="color: #94a3b8; display: block;">Fecha de Inicio:</span>
+              <strong style="color: white;">{{ registroForm.fechaInicio }}</strong>
+            </div>
+            <div>
+              <span style="color: #94a3b8; display: block;">Fecha de Fin:</span>
+              <strong style="color: white;">{{ registroForm.fechaFin }}</strong>
+            </div>
+          </div>
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">
+        <button type="submit" class="btn-primary" [disabled]="tieneErrores()" 
+                style="width: 100%; margin-top: 1.5rem; justify-content: center;">
           Registrar e Inicializar SaaS
         </button>
       </form>
@@ -178,10 +255,6 @@
         <div class="details-item">
           <span class="details-label">Correo Contacto</span>
           <span class="details-value">{{ selectedEmpresa.correoContacto || '-' }}</span>
-        </div>
-        <div class="details-item">
-          <span class="details-label">Fecha Suscripción</span>
-          <span class="details-value">{{ selectedEmpresa.fechaSuscripcion || '-' }}</span>
         </div>
       </div>
     </div>

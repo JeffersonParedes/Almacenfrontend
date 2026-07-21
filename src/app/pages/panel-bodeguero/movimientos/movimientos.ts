@@ -29,6 +29,8 @@ export class MovimientosComponent implements OnInit {
   filteredKardex: MovimientoResponse[] = [];
   pagedKardex: MovimientoResponse[] = [];
 
+  stockDisponibleLote: number | null = null;
+
   // Form State
   formMovimiento: MovimientoRequest = {
     productoId: 0,
@@ -85,7 +87,6 @@ export class MovimientosComponent implements OnInit {
   cargarKardex() {
     this.movimientoService.listarKardex().subscribe({
       next: (data) => {
-        // Ordenar del más reciente al más antiguo
         this.kardex = data.reverse();
         this.filtrarYPaginar();
         this.cdRef.detectChanges();
@@ -103,6 +104,7 @@ export class MovimientosComponent implements OnInit {
   onProductoChange() {
     this.lotesProducto = [];
     this.formMovimiento.loteId = undefined;
+    this.stockDisponibleLote = null;
     
     if (!this.formMovimiento.productoId) return;
     const prodId = Number(this.formMovimiento.productoId);
@@ -116,31 +118,48 @@ export class MovimientosComponent implements OnInit {
     });
   }
 
+  onLoteChange() {
+    if (!this.formMovimiento.loteId) {
+      this.stockDisponibleLote = null;
+      return;
+    }
+    const lote = this.lotesProducto.find(l => l.id === Number(this.formMovimiento.loteId));
+    this.stockDisponibleLote = lote ? lote.cantidadActual : null;
+  }
+
   registrarMovimiento() {
     if (!this.formMovimiento.productoId) {
-      alert('Debe seleccionar un producto');
+      alert('Debe seleccionar un producto.');
       return;
     }
     if (!this.formMovimiento.almacenId) {
-      alert('Debe seleccionar el almacén');
+      alert('Debe seleccionar el almacén.');
       return;
     }
     if (this.formMovimiento.tipoMovimiento === 'TRASLADO' && !this.formMovimiento.destinoAlmacenId) {
-      alert('Debe seleccionar el almacén de destino para traslados');
-      return;
-    }
-    if (this.formMovimiento.cantidad === undefined || this.formMovimiento.cantidad === null || this.formMovimiento.cantidad <= 0) {
-      alert('La cantidad debe ser mayor a 0');
+      alert('Debe seleccionar el almacén de destino para traslados.');
       return;
     }
 
-    // Cast numérico
+    const cant = Number(this.formMovimiento.cantidad);
+    if (isNaN(cant) || cant <= 0 || !Number.isInteger(cant)) {
+      alert('La cantidad sólo permite números enteros mayores a cero.');
+      return;
+    }
+
+    // Validar disponibilidad de stock en el lote para salidas o traslados
+    if (['SALIDA', 'TRASLADO'].includes(this.formMovimiento.tipoMovimiento) && this.stockDisponibleLote !== null) {
+      if (cant > this.stockDisponibleLote) {
+        alert('No existe suficiente stock disponible.');
+        return;
+      }
+    }
+
     this.formMovimiento.productoId = Number(this.formMovimiento.productoId);
     this.formMovimiento.almacenId = Number(this.formMovimiento.almacenId);
     if (this.formMovimiento.loteId) this.formMovimiento.loteId = Number(this.formMovimiento.loteId);
     if (this.formMovimiento.destinoAlmacenId) this.formMovimiento.destinoAlmacenId = Number(this.formMovimiento.destinoAlmacenId);
 
-    // Invocar endpoint según tipo
     let action$;
     switch (this.formMovimiento.tipoMovimiento) {
       case 'ENTRADA':
@@ -160,11 +179,10 @@ export class MovimientosComponent implements OnInit {
     }
 
     action$.subscribe({
-      next: (res) => {
+      next: () => {
         alert('Transacción de inventario registrada con éxito.');
         this.cargarKardex();
         
-        // Limpiar form
         this.formMovimiento = {
           productoId: 0,
           almacenId: 0,
@@ -175,11 +193,12 @@ export class MovimientosComponent implements OnInit {
           destinoAlmacenId: undefined
         };
         this.lotesProducto = [];
+        this.stockDisponibleLote = null;
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
-        alert(err.error?.message || 'Error al procesar el movimiento de stock. Verifique disponibilidad.');
+        alert(err.error?.message || 'No existe suficiente stock disponible.');
       }
     });
   }

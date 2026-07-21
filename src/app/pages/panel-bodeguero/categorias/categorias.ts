@@ -52,7 +52,6 @@ export class CategoriasComponent implements OnInit {
   }
 
   filtrarYPaginar() {
-    // 1. Búsqueda
     if (!this.searchTerm.trim()) {
       this.filteredCategorias = [...this.categorias];
     } else {
@@ -63,11 +62,8 @@ export class CategoriasComponent implements OnInit {
       );
     }
 
-    // 2. Límites
     this.startIndex = (this.currentPage - 1) * this.pageSize;
     this.endIndex = Math.min(this.startIndex + this.pageSize, this.filteredCategorias.length);
-
-    // 3. Paginación
     this.pagedCategorias = this.filteredCategorias.slice(this.startIndex, this.endIndex);
   }
 
@@ -93,31 +89,37 @@ export class CategoriasComponent implements OnInit {
   // --- CRUD & Aprobación ---
 
   guardar() {
-    if (!this.formCategoria.nombre.trim()) {
-      alert('El nombre de la categoría es obligatorio');
+    const nombre = this.formCategoria.nombre.trim();
+    if (!nombre) {
+      alert('El nombre de la categoría es obligatorio.');
+      return;
+    }
+
+    // Validar duplicado en vista local previa
+    const existeEnLocal = this.categorias.some(c => c.nombre.toLowerCase().trim() === nombre.toLowerCase() && c.id !== this.editingId);
+    if (existeEnLocal) {
+      alert('La categoría ya se encuentra registrada.');
       return;
     }
 
     if (this.editMode && this.editingId) {
-      // Editar
       this.categoriaService.actualizarCategoria(this.editingId, this.formCategoria).subscribe({
         next: () => {
           alert('Categoría actualizada con éxito.');
           this.cancelarEdicion();
           this.cargarCategorias();
         },
-        error: () => alert('Error al actualizar la categoría.')
+        error: (err) => alert(err.error?.message || 'Error al actualizar la categoría.')
       });
     } else {
-      // Crear directamente
       this.categoriaService.registrarCategoria(this.formCategoria).subscribe({
         next: () => {
           alert('Categoría creada con éxito.');
           this.formCategoria = { nombre: '', descripcion: '' };
           this.cargarCategorias();
-        this.cdRef.detectChanges();
+          this.cdRef.detectChanges();
         },
-        error: () => alert('Error al registrar la categoría.')
+        error: (err) => alert(err.error?.message || 'La categoría ya se encuentra registrada.')
       });
     }
   }
@@ -145,7 +147,7 @@ export class CategoriasComponent implements OnInit {
           alert('Categoría eliminada.');
           this.cargarCategorias();
         },
-        error: () => alert('No se puede eliminar la categoría. Puede estar referenciada en productos.')
+        error: (err) => alert(err.error?.message || 'No se puede eliminar la categoría. Puede estar referenciada en productos.')
       });
     }
   }
@@ -157,7 +159,7 @@ export class CategoriasComponent implements OnInit {
         alert('Categoría aprobada.');
         this.cargarCategorias();
       },
-      error: () => alert('Error al aprobar la categoría.')
+      error: (err) => alert(err.error?.message || 'Error al aprobar la categoría.')
     });
   }
 
@@ -169,7 +171,7 @@ export class CategoriasComponent implements OnInit {
           alert('Categoría rechazada.');
           this.cargarCategorias();
         },
-        error: () => alert('Error al rechazar la categoría.')
+        error: (err) => alert(err.error?.message || 'Error al rechazar la categoría.')
       });
     }
   }
